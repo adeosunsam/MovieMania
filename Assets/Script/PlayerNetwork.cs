@@ -1,14 +1,10 @@
-using TMPro;
+using System;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
 public class PlayerNetwork : NetworkBehaviour
 {
-
-    /*[SerializeField] GameObject scorePrefab1;
-    [SerializeField] GameObject scorePrefab2;
-    [SerializeField] Transform scorePositionServer;
-    [SerializeField] Transform scorePositionClient;*/
 
     public static PlayerNetwork Instance;
 
@@ -22,122 +18,158 @@ public class PlayerNetwork : NetworkBehaviour
     {
         playerScore = 0,
         playerName = string.Empty
-    }, 
+    },
         writePerm: NetworkVariableWritePermission.Owner);
 
-    public struct CustomData : INetworkSerializable
+    public struct CustomData : INetworkSerializable, IEquatable<CustomData>
     {
         public int playerScore;
-        public string playerName;// use FixedString128Bytes because string is a reference type
+        public FixedString128Bytes playerName;// use FixedString128Bytes because string is a reference type
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
-            serializer.SerializeValue(ref playerScore);
-            serializer.SerializeValue(ref playerName);
+            if (serializer.IsReader)
+            {
+                // Now de-serialize the non-complex value type properties
+                var reader = serializer.GetFastBufferReader();
+                reader.ReadValueSafe(out playerScore);
+                reader.ReadValueSafe(out playerName);
+            }
+            else
+            {
+                var writer = serializer.GetFastBufferWriter();
+                writer.WriteValueSafe(playerScore);
+                writer.WriteValueSafe(playerName);
+            }
+            // The complex value type handles its own de-serialization
+            /*serializer.SerializeValue(ref playerScore);
+            serializer.SerializeValue(ref playerName);*/
         }
+        public bool Equals(CustomData other)
+        {
+            return playerScore == other.playerScore && playerName == other.playerName;
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestOnwerShipServerRpc(ulong ownerId, int score)
+    {
+        GetComponent<NetworkObject>().ChangeOwnership(ownerId);
+
+        /*randomNum.Value = new CustomData
+        {
+            playerScore = score,
+            playerName = "North London Forever"
+        };*/
+        OwnerShipGrantedClientRpc(score);
+    }
+
+    [ClientRpc]
+    public void OwnerShipGrantedClientRpc(int score)
+    {
+        Debug.LogWarning($"----------OWNERSHIP GRANTED--------ISOWNEDBYSERVER: {IsOwnedByServer};----ISOWNER: {IsOwner};-----ISSERVER{IsServer}");
+        // Set the value after ownership is granted on the client side
+        if (IsOwner)
+        {
+            randomNum.Value = new CustomData
+            {
+                playerScore = score,
+                playerName = "North London Forever"
+            };
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestRebukeOnwerShipServerRpc()
+    {
+        GetComponent<NetworkObject>().ChangeOwnership(NetworkManager.ServerClientId);
+        //OwnerShipRebukedClientRpc();
+    }
+
+    [ClientRpc]
+    public void OwnerShipRebukedClientRpc()
+    {
+        Debug.LogWarning($"----------OWNERSHIP REBUKED--------ISOWNEDBYSERVER: {IsOwnedByServer};----ISOWNER: {IsOwner};-----ISSERVER{IsServer}");
+
     }
 
     public override void OnNetworkSpawn()//use this instead of start.
     {
-        randomNum.OnValueChanged += (CustomData previousValue, CustomData newValue) =>
+        NetworkManager.OnClientConnectedCallback += NetworkManager_OnClientConnectedCallback;
+
+        randomNum.OnValueChanged += OnStateChanged;
+    }
+    public override void OnNetworkDespawn()
+    {
+        randomNum.OnValueChanged -= OnStateChanged;
+    }
+
+    public void OnStateChanged(CustomData previousValue, CustomData newValue)
+    {
+        //Debug.Log(OwnerClientId + "; " + newValue.playerScore + "; " + newValue.playerName);
+
+        //TestServerRpc(MainUI.Singleton.isClient, newValue.playerScore);
+
+        if ((MainUI.Singleton.isClient && IsOwner) || (!MainUI.Singleton.isClient && !IsOwner))
         {
-            Debug.Log(OwnerClientId + "; " + newValue.playerScore + "; " + newValue.playerName);
-            MainUI.Singleton.UpdateScoreServer();
+            MainUI.Singleton.UpdateScoreClient(newValue.playerScore);
+        }
+        else if ((IsOwner && !MainUI.Singleton.isClient) || (!IsOwner && MainUI.Singleton.isClient))
+        {
+            MainUI.Singleton.UpdateScoreServer(newValue.playerScore);
+        }
+    }
+
+    internal void UpdateScore(int score, bool isClient)
+    {
+        if (!IsOwner && isClient)
+        {
+            //OwnerShipGrantedClientRpc(score);
+            RequestOnwerShipServerRpc(NetworkManager.LocalClientId, score);
+            return;
+        }
+        else if (!IsOwner && !isClient)
+        {
+            RequestRebukeOnwerShipServerRpc();
+        }
+        /*if(isClient)
+        {
+            //
+            GetComponent<NetworkObject>().ChangeOwnership(NetworkManager);
+        }*/
+        randomNum.Value = new CustomData
+        {
+            playerScore = score,
+            playerName = "North London Forever"
         };
     }
 
-    // Update is called once per frame
-    void Update()
+    private void NetworkManager_OnClientConnectedCallback(ulong id)
     {
-        /*if (!IsOwner)
-            return;
-
-        if (Input.GetKeyDown(KeyCode.P))
+        Debug.Log($"SUCCESSFULLY CONNECTED TO THE SERVER; Id: {id}");
+        if (id == 1)
         {
-            randomNum.Value = new CustomData
-            {
-                playerScore = MainUI.Singleton.score1++,
-                playerName = "North London Forever"
-            };
-        }*/
-
-        //if(!IsHost)
-        //TestClientRpc();
-        /*else if (IsHost)
-            TestServerRpc(new ServerRpcParams());*/
+            MainUI.Singleton.StartGame();
+        }
     }
 
-
-    [ServerRpc(RequireOwnership = false)]
-    public void TestServerRpc(ServerRpcParams serverRpcParams = default)
+    /*[ServerRpc(RequireOwnership = false)]
+    public void TestServerRpc(bool isClient, int score)
     {
-        Debug.Log($"TestServerRpc: {OwnerClientId}---------SenderId: {serverRpcParams.Receive.SenderClientId}");
-        //TestClientRpc();
-        /*MainUI.Singleton.UpdateScoreServer();
-        MainUI.Singleton.UpdateScoreClient();*/
-        //if(NetworkManager.LocalClientId == )
-        TestClientRpc();
-        
-        //MainUI.Singleton.UpdateScore(OwnerClientId.ToString());
+        TestClientRpc(isClient: isClient, score);
     }
 
     [ClientRpc]
-    public void TestClientRpc(ClientRpcParams clientRpcParams = default)
+    public void TestClientRpc(bool isClient, int score)
     {
         Debug.Log("TestClientRpc: " + OwnerClientId);
 
-        /*randomNum.Value = new CustomData
+        if (isClient)
         {
-            playerScore = MainUI.Singleton.score1,
-            playerName = "North London Forever"
-        };*/
-        if(NetworkManager.LocalClientId == 1)
-        {
-            MainUI.Singleton.UpdateScoreClient();
+            MainUI.Singleton.UpdateScoreClient(score);
             return;
         }
-        MainUI.Singleton.UpdateScoreServer();
-
-        /*if (!Instance)
-        {
-            if (IsHost)
-            {
-                Instance = Instantiate(scorePrefab, scorePositionServer);
-                //Instance.GetComponent<NetworkObject>().Spawn(true);
-            }
-            else
-            {
-                Instance = Instantiate(scorePrefab, scorePositionClient);
-                //Instance.GetComponent<NetworkObject>().Spawn(true);
-            }
-        }
-        else
-        {
-            Instance.GetComponent<TextMeshProUGUI>().text = $"Score: {MainUI.Singleton.score1}";
-            if (IsHost)
-            {
-                scorePrefab.GetComponent<TextMeshProUGUI>().text = $"Score: {MainUI.Singleton.score1}";
-            }
-            else
-            {
-                scorePrefab.GetComponent<TextMeshProUGUI>().text = $"Score: {MainUI.Singleton.score2}";
-            }
-        }*/
-
-        /*if (IsHost)
-        {
-            MainUI.Singleton.UpdateScoreServer();
-        }
-        else if(IsClient)
-        {
-            MainUI.Singleton.UpdateScoreClient();
-        }*/
-
-
-        //MainUI.Singleton.UpdateScoreClient();
-        //Debug.Log($"TestClientRpc:   ClientId: {OwnerClientId}");
-        //MainUI.Singleton.UpdateScoreClient($"TestClientRpc:   Server: {OwnerClientId}");
-        //MainUI.Singleton.UpdateScore(OwnerClientId.ToString());
-    }
+        MainUI.Singleton.UpdateScoreServer(score);
+    }*/
 
 }
