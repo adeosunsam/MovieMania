@@ -14,7 +14,7 @@ public class PlayerNetwork : NetworkBehaviour
     }
 
     //Generic can only accept value type, no reference type
-    private NetworkVariable<CustomData> randomNum = new(new CustomData
+    private NetworkVariable<CustomData> playerData = new(new CustomData
     {
         playerScore = 0,
         playerName = string.Empty
@@ -56,22 +56,16 @@ public class PlayerNetwork : NetworkBehaviour
     {
         GetComponent<NetworkObject>().ChangeOwnership(ownerId);
 
-        /*randomNum.Value = new CustomData
-        {
-            playerScore = score,
-            playerName = "North London Forever"
-        };*/
         OwnerShipGrantedClientRpc(score);
     }
 
     [ClientRpc]
     public void OwnerShipGrantedClientRpc(int score)
     {
-        Debug.LogWarning($"----------OWNERSHIP GRANTED--------ISOWNEDBYSERVER: {IsOwnedByServer};----ISOWNER: {IsOwner};-----ISSERVER{IsServer}");
         // Set the value after ownership is granted on the client side
         if (IsOwner)
         {
-            randomNum.Value = new CustomData
+            playerData.Value = new CustomData
             {
                 playerScore = score,
                 playerName = "North London Forever"
@@ -97,16 +91,16 @@ public class PlayerNetwork : NetworkBehaviour
     {
         NetworkManager.OnClientConnectedCallback += NetworkManager_OnClientConnectedCallback;
 
-        randomNum.OnValueChanged += OnStateChanged;
+        playerData.OnValueChanged += OnStateChanged;
     }
     public override void OnNetworkDespawn()
     {
-        randomNum.OnValueChanged -= OnStateChanged;
+        playerData.OnValueChanged -= OnStateChanged;
     }
 
     public void OnStateChanged(CustomData previousValue, CustomData newValue)
     {
-        //Debug.Log(OwnerClientId + "; " + newValue.playerScore + "; " + newValue.playerName);
+        Debug.Log(OwnerClientId + "; " + newValue.playerScore + "; " + newValue.playerName);
 
         //TestServerRpc(MainUI.Singleton.isClient, newValue.playerScore);
 
@@ -137,7 +131,7 @@ public class PlayerNetwork : NetworkBehaviour
             //
             GetComponent<NetworkObject>().ChangeOwnership(NetworkManager);
         }*/
-        randomNum.Value = new CustomData
+        playerData.Value = new CustomData
         {
             playerScore = score,
             playerName = "North London Forever"
@@ -147,7 +141,7 @@ public class PlayerNetwork : NetworkBehaviour
     private void NetworkManager_OnClientConnectedCallback(ulong id)
     {
         Debug.Log($"SUCCESSFULLY CONNECTED TO THE SERVER; Id: {id}");
-        if (id == 1)
+        if (id >= 1)
         {
             MainUI.Singleton.StartGame();
         }

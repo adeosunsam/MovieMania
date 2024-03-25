@@ -50,19 +50,15 @@ public class MainUI : MonoBehaviour
     {
         Singleton = this;
 
-        clientBtn.onClick.AddListener(() =>
+        clientBtn.onClick.AddListener(async () =>
         {
-            NetworkManager.Singleton.StartClient();
-            
             isClient = true;
-
-            //TestLobby.Instance.JoinLobby();
+            await TestLobby.Instance.StartClientWithRelay();
         });
 
-        hostBtn.onClick.AddListener(() =>
+        hostBtn.onClick.AddListener(async () =>
         {
-            NetworkManager.Singleton.StartHost();
-            
+            await TestLobby.Instance.StartHostWithRelay();
         });
 
         /*questionBtn.onClick.AddListener(() =>
@@ -80,11 +76,11 @@ public class MainUI : MonoBehaviour
         isGameStarted = true;
     }
 
-    private void Update()
+    /*private void Update()
     {
         if(isGameStarted)
             QuestionTimer();
-    }
+    }*/
 
     internal void UpdateScoreServer(int? playerScore = null)
     {
