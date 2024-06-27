@@ -156,11 +156,4 @@ public class MainUI : MonoBehaviour
 
         PlayerNetwork.Instance.UpdateScore(score, isClient);
     }
-
-    IEnumerator DelayRoutine()
-    {
-        yield return new WaitForSeconds(2);
-
-        QuestionManager.Singleton.MapQuestionToUI();
-    }
 }

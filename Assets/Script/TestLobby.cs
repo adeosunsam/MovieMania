@@ -53,9 +53,12 @@ public class TestLobby : NetworkBehaviour
         }
     }*/
 
-    private void Awake()
+    private async void Awake()
     {
         Instance = this;
+
+
+        await UnityServices.InitializeAsync();
     }
     /*private async void Start()
     {
@@ -72,7 +75,21 @@ public class TestLobby : NetworkBehaviour
     {
         //NetworkManager.OnClientConnectedCallback += NetworkManager_OnClientConnectedCallback;
 
+        NetworkManager.OnClientStopped += NetworkManager_OnClientStopped;
+
+        NetworkManager.OnClientDisconnectCallback += NetworkManager_OnClientDisconnectCallback;
         //lobbyData.OnValueChanged += OnStateChanged;
+    }
+
+    private void NetworkManager_OnClientStopped(bool obj)
+    {
+        Debug.LogWarning($"ON CLIENT DISCONNET: {obj}");
+        Lobbies.Instance.DeleteLobbyAsync(lobby.Id);
+    }
+
+    private void NetworkManager_OnClientDisconnectCallback(ulong id)
+    {
+        Debug.Log($"SUCCESSFULLY DISCONNECTED FROM SERVER: {id}");
     }
 
     /*private void NetworkManager_OnClientConnectedCallback(ulong id)
@@ -179,7 +196,6 @@ public class TestLobby : NetworkBehaviour
 
     public async Task<string> StartHostWithRelay(int maxConnections = 2)
     {
-        await UnityServices.InitializeAsync();
         if (!AuthenticationService.Instance.IsSignedIn)
         {
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
@@ -198,13 +214,11 @@ public class TestLobby : NetworkBehaviour
 
     public async Task<bool> StartClientWithRelay()
     {
-        await UnityServices.InitializeAsync();
-
-#if UNITY_EDITOR
-        AuthenticationService.Instance.ClearSessionToken();
-#endif
         if (!AuthenticationService.Instance.IsSignedIn)
         {
+#if UNITY_EDITOR
+            AuthenticationService.Instance.ClearSessionToken();
+#endif
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
         }
 
@@ -218,6 +232,7 @@ public class TestLobby : NetworkBehaviour
         NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(new RelayServerData(joinAllocation, "dtls"));
         return !string.IsNullOrEmpty(joinCode) && NetworkManager.Singleton.StartClient();
     }
+    
     private void Update()
     {
         HandleLobbyHeartBeat();
@@ -278,6 +293,7 @@ public class TestLobby : NetworkBehaviour
     {
         try
         {
+            Debug.LogWarning($"Previous lobby: {lobby?.LobbyCode}; LobbyCode: {lobbyCode}");
             var result = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode);
 
             lobby = result;
@@ -305,7 +321,10 @@ public class TestLobby : NetworkBehaviour
 
     private void OnApplicationQuit()
     {
-        if(lobby != null)
-        Lobbies.Instance.DeleteLobbyAsync(lobby.Id);
+        if (lobby != null)
+        {
+            Debug.LogWarning($"Quiting application on {NetworkManager.LocalClientId}; LobbyCode: {lobby.LobbyCode}");
+            Lobbies.Instance.DeleteLobbyAsync(lobby.Id);
+        }
     }
 }
