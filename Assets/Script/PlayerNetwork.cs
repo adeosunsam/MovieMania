@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class PlayerNetwork : NetworkBehaviour
 {
+/*
+    #region 
 
     public static PlayerNetwork Instance;
 
@@ -42,8 +44,8 @@ public class PlayerNetwork : NetworkBehaviour
                 writer.WriteValueSafe(playerName);
             }
             // The complex value type handles its own de-serialization
-            /*serializer.SerializeValue(ref playerScore);
-            serializer.SerializeValue(ref playerName);*/
+            *//*serializer.SerializeValue(ref playerScore);
+            serializer.SerializeValue(ref playerName);*//*
         }
         public bool Equals(CustomData other)
         {
@@ -126,11 +128,11 @@ public class PlayerNetwork : NetworkBehaviour
         {
             RequestRebukeOnwerShipServerRpc();
         }
-        /*if(isClient)
+        *//*if(isClient)
         {
             //
             GetComponent<NetworkObject>().ChangeOwnership(NetworkManager);
-        }*/
+        }*//*
         playerData.Value = new CustomData
         {
             playerScore = score,
@@ -147,23 +149,25 @@ public class PlayerNetwork : NetworkBehaviour
         }
     }
 
-    /*[ServerRpc(RequireOwnership = false)]
-    public void TestServerRpc(bool isClient, int score)
+*//*[ServerRpc(RequireOwnership = false)]
+public void TestServerRpc(bool isClient, int score)
+{
+    TestClientRpc(isClient: isClient, score);
+}
+
+[ClientRpc]
+public void TestClientRpc(bool isClient, int score)
+{
+    Debug.Log("TestClientRpc: " + OwnerClientId);
+
+    if (isClient)
     {
-        TestClientRpc(isClient: isClient, score);
+        MainUI.Singleton.UpdateScoreClient(score);
+        return;
     }
+    MainUI.Singleton.UpdateScoreServer(score);
+}*//*
 
-    [ClientRpc]
-    public void TestClientRpc(bool isClient, int score)
-    {
-        Debug.Log("TestClientRpc: " + OwnerClientId);
-
-        if (isClient)
-        {
-            MainUI.Singleton.UpdateScoreClient(score);
-            return;
-        }
-        MainUI.Singleton.UpdateScoreServer(score);
-    }*/
-
+#endregion
+*/
 }

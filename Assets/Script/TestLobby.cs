@@ -16,11 +16,11 @@ using UnityEngine;
 
 public class TestLobby : NetworkBehaviour
 {
-    [SerializeField]
+    /*[SerializeField]
     private string lobbyCode;
 
-    /*[SerializeField]
-    private string joinCode;*/
+    *//*[SerializeField]
+    private string joinCode;*//*
 
     public static TestLobby Instance;
 
@@ -30,7 +30,7 @@ public class TestLobby : NetworkBehaviour
 
     //private string relayCode;
 
-    /*private NetworkVariable<LobbyData> lobbyData = new(new LobbyData
+    *//*private NetworkVariable<LobbyData> lobbyData = new(new LobbyData
     {
         hostLobbyId = string.Empty,
         //joinCode = string.Empty
@@ -51,7 +51,7 @@ public class TestLobby : NetworkBehaviour
         {
             return hostLobbyId == other.hostLobbyId;// && joinCode == other.joinCode;
         }
-    }*/
+    }*//*
 
     private async void Awake()
     {
@@ -60,7 +60,7 @@ public class TestLobby : NetworkBehaviour
 
         await UnityServices.InitializeAsync();
     }
-    /*private async void Start()
+    *//*private async void Start()
     {
         await UnityServices.InitializeAsync();
 
@@ -70,7 +70,7 @@ public class TestLobby : NetworkBehaviour
         };
 
         await AuthenticationService.Instance.SignInAnonymouslyAsync();
-    }*/
+    }*//*
     public override void OnNetworkSpawn()//use this instead of start.
     {
         //NetworkManager.OnClientConnectedCallback += NetworkManager_OnClientConnectedCallback;
@@ -92,7 +92,7 @@ public class TestLobby : NetworkBehaviour
         Debug.Log($"SUCCESSFULLY DISCONNECTED FROM SERVER: {id}");
     }
 
-    /*private void NetworkManager_OnClientConnectedCallback(ulong id)
+    *//*private void NetworkManager_OnClientConnectedCallback(ulong id)
     {
         Debug.Log($"SUCCESSFULLY CONNECTED TO CLIENT: {id}");
         if (id > 1)
@@ -192,7 +192,7 @@ public class TestLobby : NetworkBehaviour
         }
 
         return (allocation.RelayServer.IpV4, (ushort)allocation.RelayServer.Port, allocation.AllocationIdBytes, allocation.Key, allocation.ConnectionData, createJoinCode);
-    }*/
+    }*//*
 
     public async Task<string> StartHostWithRelay(int maxConnections = 2)
     {
@@ -299,13 +299,13 @@ public class TestLobby : NetworkBehaviour
             lobby = result;
             // get the relay code
             //var relayCode = lobby.Data["RelayCode"].Value;
-            /*//start client
+            *//*//start client
             var startClient = await StartClientWithRelay(relayCode);
             if (!startClient)
             {
 
             lobby = result;;
-            }*/
+            }*//*
             Debug.Log($"LobbyName: {lobby.Name}; AvailableSlot: {lobby.AvailableSlots}");
 
         }
@@ -313,10 +313,10 @@ public class TestLobby : NetworkBehaviour
         {
             Debug.LogError(e.Message);
         }
-        /*catch (Exception e)
+        *//*catch (Exception e)
         {
             Debug.LogError(e.Message);
-        }*/
+        }*//*
     }
 
     private void OnApplicationQuit()
@@ -326,5 +326,5 @@ public class TestLobby : NetworkBehaviour
             Debug.LogWarning($"Quiting application on {NetworkManager.LocalClientId}; LobbyCode: {lobby.LobbyCode}");
             Lobbies.Instance.DeleteLobbyAsync(lobby.Id);
         }
-    }
+    }*/
 }

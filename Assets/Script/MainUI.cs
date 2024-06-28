@@ -1,13 +1,12 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class MainUI : MonoBehaviour
 {
+    [SerializeField]
+    private string recieverEmail;
 
     [SerializeField]
     private TextMeshProUGUI Score1;
@@ -18,14 +17,13 @@ public class MainUI : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI QuestionCountDown;
 
-
     [SerializeField]
     private Button questionBtn;
 
     [SerializeField]
     private GameObject questionPanel;
 
-    private List<ulong> ConnectedClientId;
+    //private List<ulong> ConnectedClientId;
 
     [SerializeField]
     private Button clientBtn;
@@ -52,13 +50,16 @@ public class MainUI : MonoBehaviour
 
         clientBtn.onClick.AddListener(async () =>
         {
-            isClient = true;
-            await TestLobby.Instance.StartClientWithRelay();
+            BroadcastService.Singleton.Authenticate();
+
+            /*isClient = true;
+            await TestLobby.Instance.StartClientWithRelay();*/
         });
 
         hostBtn.onClick.AddListener(async () =>
         {
-            await TestLobby.Instance.StartHostWithRelay();
+            BroadcastService.Singleton.Authenticate();
+            //await TestLobby.Instance.StartHostWithRelay();
         });
 
         /*questionBtn.onClick.AddListener(() =>
@@ -76,15 +77,16 @@ public class MainUI : MonoBehaviour
         isGameStarted = true;
     }
 
-    /*private void Update()
+    private void Update()
     {
-        if(isGameStarted)
-            QuestionTimer();
-    }*/
+        /*if (isGameStarted)
+            QuestionTimer();*/
+        UpdateScoreClient();
+    }
 
     internal void UpdateScoreServer(int? playerScore = null)
     {
-        if(playerScore != null )
+        if (playerScore != null)
             score1 = playerScore.Value;
 
         string scoreText = $"Score: {score1}";
@@ -108,13 +110,13 @@ public class MainUI : MonoBehaviour
 
         questionTimer += Time.deltaTime;
 
-        if(questionTimer >= 1f)
+        if (questionTimer >= 1f)
         {
             questionTimer = 0f;
             questionTimerMax -= 1f;
         }
 
-        if( questionTimerMax > 0f )
+        if (questionTimerMax > 0f)
         {
             return;
         }
@@ -141,9 +143,8 @@ public class MainUI : MonoBehaviour
     internal void PlayerScore()
     {
         int score;
-        if (isClient)
+        /*if (isClient)
         {
-            Debug.Log($"11--------------------score2: {score2}");
             score2 += (int)questionTimerMax;
             score = score2;
             Debug.Log($"22--------------------score2: {score2}");
@@ -152,8 +153,12 @@ public class MainUI : MonoBehaviour
         {
             score1 += (int)questionTimerMax;
             score = score1;
-        }
+        }*/
 
-        PlayerNetwork.Instance.UpdateScore(score, isClient);
+        score1 += (int)questionTimerMax;
+        score = score1;
+        UpdateScoreServer(score);
+        BroadcastService.Singleton.UpdateScore(score, recieverEmail);
+        //PlayerNetwork.Instance.UpdateScore(score, isClient);
     }
 }
