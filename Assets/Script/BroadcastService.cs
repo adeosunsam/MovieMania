@@ -10,12 +10,10 @@ public class BroadcastService : MonoBehaviour
     //private static readonly HttpClient client = new HttpClient();
 
     [SerializeField]
-    private string email;//this will be gotten from google oauth
+    private string userId;//this will be gotten from google oauth
 
     private HubConnection hubconnection;
-    private string url = "http://localhost:5183/chatHub";
-
-    private string token;
+    private string url = "http://localhost:5060/chatHub";
 
     public static BroadcastService Singleton { get; private set; }
 
@@ -27,7 +25,7 @@ public class BroadcastService : MonoBehaviour
     // Start is called before the first frame update
     public async void Authenticate()
     {
-        token = await AuthenticateUser();
+        var token = await AuthenticateUser();
 
         if (string.IsNullOrEmpty(token))
         {
@@ -56,10 +54,10 @@ public class BroadcastService : MonoBehaviour
         {
             await hubconnection.StartAsync();
 
-            if (!string.IsNullOrEmpty(email))
+            /*if (!string.IsNullOrEmpty(userId))
             {
                 MainUI.Singleton.StartGame();
-            }
+            }*/
         }
         catch (Exception ex)
         {
@@ -76,7 +74,7 @@ public class BroadcastService : MonoBehaviour
     private async Task<string> AuthenticateUser()
     {
         // Replace with your authentication endpoint
-        string authUrl = $"https://localhost:7183/api/login?email={email}";
+        string authUrl = $"https://localhost:7153/api/login?userId={userId}";
         UnityWebRequest www = UnityWebRequest.PostWwwForm(authUrl, "");
         www.SetRequestHeader("Content-Type", "application/json");
 
@@ -125,12 +123,6 @@ public class BroadcastService : MonoBehaviour
             return null;
         }
     }*/
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
 
     private async void OnApplicationQuit()
     {
