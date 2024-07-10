@@ -9,7 +9,6 @@ public class BottomNavigation : MonoBehaviour
     public GameObject profile;
     public GameObject startgame;
     public GameObject topic;
-    public GameObject backButton;
     public GameObject topicPage;
     public GameObject activityChallenge;
 
@@ -52,7 +51,6 @@ public class BottomNavigation : MonoBehaviour
 
     public void OnclickBackbutton()
     {
-        backButton.SetActive(false);
         topicPage.SetActive(false);
         startgame.SetActive(true);
         activityChallenge.SetActive(false);
@@ -60,7 +58,6 @@ public class BottomNavigation : MonoBehaviour
 
     public void OnclickTopicButton()
     {
-        backButton.SetActive(true);
         topicPage.SetActive(true);
         startgame.SetActive(false);
         activityChallenge.SetActive(false);
