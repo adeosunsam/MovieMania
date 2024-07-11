@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,7 +8,7 @@ using static SharedResources;
 
 public class StartPage : MonoBehaviour
 {
-    private readonly List<FollowedTopic> topics = new()
+    private readonly List<FollowedTopic> topicIds = new()
     {
         new FollowedTopic("0b1b0150-54f8-42f0-92e5-8795986e9939"),
         new FollowedTopic("07e2d314-529f-42d1-8d0b-46b0ed8d8ee1"),
@@ -32,12 +33,20 @@ public class StartPage : MonoBehaviour
     void Start()
     {
         onClickTopic = FindAnyObjectByType<NavigationSection>();
+
+        // Make sure MainThreadDispatcher is in the scene
+        if (FindObjectOfType<MainThreadDispatcher>() == null)
+        {
+            GameObject dispatcherObj = new("MainThreadDispatcher");
+            dispatcherObj.AddComponent<MainThreadDispatcher>();
+        }
+
         FollowedTopic();
     }
 
     private void FollowedTopic()
     {
-        var followedTopics = SharedResources.topics.Where(x => topics.Select(y => y.TopicId).Contains(x.Id));
+        var followedTopics = topics.Where(x => topicIds.Select(y => y.TopicId).Contains(x.Id));
 
         var item_go = Instantiate(sectionPrefab);
 
@@ -65,15 +74,7 @@ public class StartPage : MonoBehaviour
 
             var profileImage = topic_go.GetComponentInChildren<Image>();
 
-            Texture2D texture = LoadTextureFromBase64(topic.Image);
-
-            // Create a sprite from the texture
-            if (texture != null)
-            {
-                Sprite sprite = SpriteFromTexture2D(texture);
-
-                profileImage.sprite = sprite;
-            }
+            _ = LoadTopicImageAsync(profileImage, topic.Image);
 
             topic_go.GetComponentInChildren<TextMeshProUGUI>().text = topic.Name;
 

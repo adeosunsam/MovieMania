@@ -2,6 +2,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static SharedResources;
 
 public class ActivityPage : MonoBehaviour
 {
@@ -83,15 +84,7 @@ public class ActivityPage : MonoBehaviour
 
             var profileImage = image.Find("ImageMask").GetComponent<Image>();
 
-            Texture2D texture = SharedResources.LoadTextureFromBase64(activity.ProfilePicture);
-
-            // Create a sprite from the texture
-            if (texture != null)
-            {
-                Sprite sprite = SharedResources.SpriteFromTexture2D(texture);
-
-                profileImage.sprite = sprite;
-            }
+            _ = LoadTopicImageAsync(profileImage, activity.ProfilePicture);
 
             var textGameObject = item_go.GetComponentsInChildren<Transform>().First(c => !c.Find("Line"));
 

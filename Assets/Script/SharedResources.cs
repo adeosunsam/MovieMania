@@ -1,8 +1,30 @@
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SharedResources
 {
+
+    internal static async Task LoadTopicImageAsync(Image targetImage, string base64)
+    {
+        var imagebyte = await Task.Run(() => Convert.FromBase64String(base64));
+
+        if (imagebyte != null)
+        {
+            MainThreadDispatcher.Enqueue(() =>
+            {
+                var texture = LoadTextureFromByteArray(imagebyte);
+                Sprite sprite = SpriteFromTexture2D(texture);
+                targetImage.sprite = sprite;
+            });
+        }
+        else
+        {
+            Debug.LogError("unable to load base 64 string");
+        }
+    }
 
     internal static readonly List<Topic> topics = new()
     {
@@ -138,26 +160,28 @@ public class SharedResources
         }
     };
 
-    internal static Texture2D LoadTextureFromBase64(string base64)
+    private static Texture2D LoadTextureFromByteArray(byte[] imageBytes)
     {
-        byte[] imageBytes = System.Convert.FromBase64String(base64);
-        Texture2D texture = new Texture2D(2, 2);
-        if (texture.LoadImage(imageBytes))
+        try
         {
-            return texture;
-        }
-        else
-        {
+            Texture2D texture = new Texture2D(2, 2);
+            if (texture.LoadImage(imageBytes))
+            {
+                return texture;
+            }
             Debug.LogError("Failed to load texture from base64 string.");
-            return null;
         }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"Exception =====> {ex.Message}");
+        }
+        return null;
     }
 
-    internal static Sprite SpriteFromTexture2D(Texture2D texture)
+    private static Sprite SpriteFromTexture2D(Texture2D texture)
     {
         return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
     }
-
 
     public class Topic
     {

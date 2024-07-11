@@ -25,56 +25,47 @@ public class TopicPage : MonoBehaviour
         onClickTopic = FindAnyObjectByType<NavigationSection>();
         GetTopics();
     }
-
     public void GetTopics()
-    {
-        var groupedTopics = topics.GroupBy(x => x.Category).ToList();
-
-        foreach (var groupedTopic in groupedTopics)
         {
-            var item_go = Instantiate(sectionPrefab);
+            var groupedTopics = topics.GroupBy(x => x.Category).ToList();
 
-            item_go.transform.SetParent(sectionContentContainer);
-
-            //reset the item's scale -- this can get munged with UI prefabs
-            item_go.transform.localScale = Vector2.one;
-
-            var topicTitle = item_go.GetComponentInChildren<TextMeshProUGUI>();
-
-            topicTitle.text = groupedTopic.Key.ToString();
-
-            var nestedScrollRect = item_go.GetComponentInChildren<ScrollRect>();
-
-            topicContentContainer = nestedScrollRect.content;
-
-            foreach (var topic in groupedTopic)
+            foreach (var groupedTopic in groupedTopics)
             {
-                var topic_go = Instantiate(topicPrefab);
+                var item_go = Instantiate(sectionPrefab);
 
-                topic_go.transform.SetParent(topicContentContainer);
+                item_go.transform.SetParent(sectionContentContainer);
 
                 //reset the item's scale -- this can get munged with UI prefabs
-                topic_go.transform.localScale = Vector2.one;
+                item_go.transform.localScale = Vector2.one;
 
-                var profileImage = topic_go.GetComponentInChildren<Image>();
+                var topicTitle = item_go.GetComponentInChildren<TextMeshProUGUI>();
 
-                Texture2D texture = LoadTextureFromBase64(topic.Image);
+                topicTitle.text = groupedTopic.Key.ToString();
 
-                // Create a sprite from the texture
-                if (texture != null)
+                var nestedScrollRect = item_go.GetComponentInChildren<ScrollRect>();
+
+                topicContentContainer = nestedScrollRect.content;
+
+                foreach (var topic in groupedTopic)
                 {
-                    Sprite sprite = SpriteFromTexture2D(texture);
+                    var topic_go = Instantiate(topicPrefab);
 
-                    profileImage.sprite = sprite;
-                }
+                    topic_go.transform.SetParent(topicContentContainer);
 
-                topic_go.GetComponentInChildren<TextMeshProUGUI>().text = topic.Name;
+                    //reset the item's scale -- this can get munged with UI prefabs
+                    topic_go.transform.localScale = Vector2.one;
 
-                if (onClickTopic)
-                {
-                    onClickTopic.OnClickTopicCard(topic_go, gameObject, topic);
+                    var profileImage = topic_go.GetComponentInChildren<Image>();
+
+                    _ = LoadTopicImageAsync(profileImage, topic.Image);
+
+                    topic_go.GetComponentInChildren<TextMeshProUGUI>().text = topic.Name;
+
+                    if (onClickTopic)
+                    {
+                        onClickTopic.OnClickTopicCard(topic_go, gameObject, topic);
+                    }
                 }
             }
         }
-    }
 }
