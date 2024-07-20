@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,30 +19,29 @@ public class StartUp : MonoBehaviour
     [SerializeField]
     private GameObject registerPanel;
 
-    private void Awake()
-    {
-        Testing();
-    }
+    [SerializeField]
+    private Animator loadingCircleAnimator, logoAnimator;
 
     private void Start()
     {
-        //StartCoroutine(nameof(OnboardingRoutine));
+        Testing();
+        StartCoroutine(nameof(OnboardingRoutine));
     }
 
     IEnumerator OnboardingRoutine()
     {
-        ProgressDialogue.Instance.SetLoadingCircleAnimation(true);
-        ProgressDialogue.Instance.SetLogoAnimation(true);
+        ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, true);
+        ProgressDialogue.Instance.SetLogoAnimation(logoAnimator, true);
 
         yield return new WaitForSeconds(5f);
 
-        ProgressDialogue.Instance.SetLoadingCircleAnimation(false);
-        ProgressDialogue.Instance.SetLogoAnimation(false);
+        ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, false);
+        ProgressDialogue.Instance.SetLogoAnimation(logoAnimator, false);
 
         onboardingPanel.SetActive(false);
         getStartedPanel.SetActive(true);
     }
-
+/*
     IEnumerator ReverseClick(GameObject objectToDeactivate)
     {
         yield return new WaitForSeconds(5f);
@@ -49,11 +49,11 @@ public class StartUp : MonoBehaviour
         objectToDeactivate.SetActive(false);
         getStartedPanel.SetActive(true);
     }
-
+*/
     private void Testing()
     {
-        var getStartedButton = getStartedPanel.transform.GetChild(0).Find("GetStartedButton").GetComponent<Button>();
-        var loginButton = getStartedPanel.transform.GetChild(0).Find("LoginButton").GetComponent<Button>();
+        var buttons = getStartedPanel.GetComponentsInChildren<Button>();
+        var getStartedButton = buttons.FirstOrDefault(x => x.name == "GetStartedButton");
 
         if (getStartedButton != null)
         {
@@ -63,19 +63,13 @@ public class StartUp : MonoBehaviour
                 getStartedPanel.SetActive(false);
                 registerPanel.SetActive(true);
 
-                StartCoroutine(ReverseClick(registerPanel));
-            });
-        }
-
-        if (loginButton != null)
-        {
-            loginButton.onClick.RemoveAllListeners();
-            loginButton.onClick.AddListener(() =>
-            {
-                getStartedPanel.SetActive(false);
-                loginPanel.SetActive(true);
-
-                StartCoroutine(ReverseClick(loginPanel));
+                // Make sure MainThreadDispatcher is in the scene
+                if (FindObjectOfType<MainThreadDispatcher>() == null)
+                {
+                    GameObject dispatcherObj = new(nameof(MainThreadDispatcher));
+                    dispatcherObj.AddComponent<MainThreadDispatcher>();
+                }
+                //StartCoroutine(ReverseClick(registerPanel));
             });
         }
     }

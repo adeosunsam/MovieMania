@@ -22,7 +22,7 @@ public class BroadcastService : MonoBehaviour
         Singleton = this;
     }
 
-    // Start is called before the first frame update
+
     public async void Authenticate()
     {
         var token = await AuthenticateUser();
@@ -77,18 +77,11 @@ public class BroadcastService : MonoBehaviour
         string authUrl = $"https://localhost:7153/api/login?userId={userId}";
         UnityWebRequest www = UnityWebRequest.PostWwwForm(authUrl, "");
         www.SetRequestHeader("Content-Type", "application/json");
-
-        // Add user credentials to the request body if needed
-        /*var json = "{\"username\":\"user\",\"password\":\"password\"}";
-        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
-        www.uploadHandler = new UploadHandlerRaw(bodyRaw);*/
-
         await www.SendWebRequestAsync();
 
         if (www.result == UnityWebRequest.Result.Success)
         {
             var response = www.downloadHandler.text;
-            // Parse the token from the response
             var tokenResponse = JsonUtility.FromJson<TokenResponse>(response);
             return tokenResponse.token;
         }

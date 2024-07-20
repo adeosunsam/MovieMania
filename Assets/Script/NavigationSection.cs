@@ -1,9 +1,6 @@
 using System;
-using System.Linq;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using static SharedResources;
 
 public class NavigationSection : MonoBehaviour
 {
@@ -13,7 +10,7 @@ public class NavigationSection : MonoBehaviour
     [SerializeField]
     private GameObject backButton;
 
-    public event EventHandler<Topic> OnTopicSelected;
+    public event EventHandler<TopicResponseDto> OnTopicSelected;
 
     public static NavigationSection Instance { get; private set; }
 
@@ -22,7 +19,7 @@ public class NavigationSection : MonoBehaviour
         Instance = this;
     }
 
-    public virtual void OnClickTopicCard(GameObject topicPrefab, GameObject currentPage, Topic topic)
+    public virtual void OnClickTopicCard(GameObject topicPrefab, GameObject currentPage, TopicResponseDto topic)
     {
         var button = topicPrefab.GetComponentInChildren<Button>();
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class MainThreadDispatcher : MonoBehaviour
@@ -10,6 +11,7 @@ public class MainThreadDispatcher : MonoBehaviour
     {
         lock (_executionQueue)
         {
+            Debug.Log($"Enqueueing Count: {_executionQueue.Count}");
             _executionQueue.Enqueue(action);
         }
     }
@@ -20,6 +22,7 @@ public class MainThreadDispatcher : MonoBehaviour
         {
             while (_executionQueue.Count > 0)
             {
+                Debug.LogWarning($"Dequeue Count: {_executionQueue.Count}");
                 _executionQueue.Dequeue().Invoke();
             }
         }

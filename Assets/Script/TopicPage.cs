@@ -17,55 +17,70 @@ public class TopicPage : MonoBehaviour
 
     private Transform topicContentContainer;
 
-    private NavigationSection onClickTopic;
+    [SerializeField]
+    private Animator loadingCircleAnimator;
 
-    // Start is called before the first frame update
+    private NavigationSection onClickTopic;
+    private bool hasDisplayedTopics;
+
     void Start()
     {
         onClickTopic = FindAnyObjectByType<NavigationSection>();
-        GetTopics();
+        ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, true);
     }
-    public void GetTopics()
+    private void Update()
+    {
+        if (TopicResponse != null && !TopicResponse.Exists(x => !x?.Sprite) && !hasDisplayedTopics)
         {
-            var groupedTopics = topics.GroupBy(x => x.Category).ToList();
+            hasDisplayedTopics = true;
+            ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, false);
+            loadingCircleAnimator.gameObject.SetActive(false);
+            GetTopics();
+        }
+    }
 
-            foreach (var groupedTopic in groupedTopics)
+    public void GetTopics()
+    {
+        var groupedTopics = TopicResponse.GroupBy(x => x.Category).ToList();
+
+        foreach (var groupedTopic in groupedTopics)
+        {
+            var item_go = Instantiate(sectionPrefab);
+
+            item_go.transform.SetParent(sectionContentContainer);
+
+            //reset the item's scale -- this can get munged with UI prefabs
+            item_go.transform.localScale = Vector2.one;
+
+            var topicTitle = item_go.GetComponentInChildren<TextMeshProUGUI>();
+
+            topicTitle.text = groupedTopic.Key.ToString();
+
+            var nestedScrollRect = item_go.GetComponentInChildren<ScrollRect>();
+
+            topicContentContainer = nestedScrollRect.content;
+
+            foreach (var topic in groupedTopic)
             {
-                var item_go = Instantiate(sectionPrefab);
+                var topic_go = Instantiate(topicPrefab);
 
-                item_go.transform.SetParent(sectionContentContainer);
+                topic_go.transform.SetParent(topicContentContainer);
 
                 //reset the item's scale -- this can get munged with UI prefabs
-                item_go.transform.localScale = Vector2.one;
+                topic_go.transform.localScale = Vector2.one;
 
-                var topicTitle = item_go.GetComponentInChildren<TextMeshProUGUI>();
+                var profileImage = topic_go.GetComponentInChildren<Image>();
 
-                topicTitle.text = groupedTopic.Key.ToString();
+                profileImage.sprite = topic.Sprite;
+                //_ = LoadTopicImageAsync(profileImage, topic.Image);
 
-                var nestedScrollRect = item_go.GetComponentInChildren<ScrollRect>();
+                topic_go.GetComponentInChildren<TextMeshProUGUI>().text = topic.Name;
 
-                topicContentContainer = nestedScrollRect.content;
-
-                foreach (var topic in groupedTopic)
+                if (onClickTopic)
                 {
-                    var topic_go = Instantiate(topicPrefab);
-
-                    topic_go.transform.SetParent(topicContentContainer);
-
-                    //reset the item's scale -- this can get munged with UI prefabs
-                    topic_go.transform.localScale = Vector2.one;
-
-                    var profileImage = topic_go.GetComponentInChildren<Image>();
-
-                    _ = LoadTopicImageAsync(profileImage, topic.Image);
-
-                    topic_go.GetComponentInChildren<TextMeshProUGUI>().text = topic.Name;
-
-                    if (onClickTopic)
-                    {
-                        onClickTopic.OnClickTopicCard(topic_go, gameObject, topic);
-                    }
+                    onClickTopic.OnClickTopicCard(topic_go, gameObject, topic);
                 }
             }
         }
+    }
 }

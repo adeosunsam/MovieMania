@@ -72,7 +72,7 @@ public class ActivityPage : MonoBehaviour
 
         RefreshAvailableLevels(childCount, m_ContentContainer);
 
-        foreach (var activity in SharedResources.playerActivity)
+        foreach (var activity in playerActivity)
         {
             var item_go = Instantiate(activityPrefab);
             item_go.transform.SetParent(m_ContentContainer);
@@ -84,7 +84,18 @@ public class ActivityPage : MonoBehaviour
 
             var profileImage = image.Find("ImageMask").GetComponent<Image>();
 
-            _ = LoadTopicImageAsync(profileImage, activity.ProfilePicture);
+            profileImage.sprite = activity.Sprite;
+            //_ = LoadTopicImageAsync(profileImage, activity.ProfilePicture);
+
+            /*Texture2D texture = SharedResources.LoadTextureFromBase64(activity.ProfilePicture);
+
+            // Create a sprite from the texture
+            if (texture != null)
+            {
+                Sprite sprite = SharedResources.SpriteFromTexture2D(texture);
+
+                profileImage.sprite = sprite;
+            }*/
 
             var textGameObject = item_go.GetComponentsInChildren<Transform>().First(c => !c.Find("Line"));
 

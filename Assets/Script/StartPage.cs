@@ -1,22 +1,15 @@
 using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using static SharedResources;
+using static AppConstant;
 
 public class StartPage : MonoBehaviour
 {
-    private readonly List<FollowedTopic> topicIds = new()
-    {
-        new FollowedTopic("0b1b0150-54f8-42f0-92e5-8795986e9939"),
-        new FollowedTopic("07e2d314-529f-42d1-8d0b-46b0ed8d8ee1"),
-        new FollowedTopic("3998b12b-e36b-4d59-b2a4-efc6a58d0fc3"),
-        new FollowedTopic("2c1a2a77-7d35-4b68-8c4a-5a1f1ae9bc12"),
-        new FollowedTopic("be39a7d7-fbb6-42e7-8102-59e4cc282748"),
-    };
-
     [SerializeField]
     private Transform sectionContentContainer;
 
@@ -30,23 +23,34 @@ public class StartPage : MonoBehaviour
 
     private NavigationSection onClickTopic;
 
+    private bool hasDisplayedFollowedTopics;
+
     void Start()
     {
         onClickTopic = FindAnyObjectByType<NavigationSection>();
 
-        // Make sure MainThreadDispatcher is in the scene
-        if (FindObjectOfType<MainThreadDispatcher>() == null)
+        /*_ = Task.Run(async () =>
         {
-            GameObject dispatcherObj = new("MainThreadDispatcher");
-            dispatcherObj.AddComponent<MainThreadDispatcher>();
-        }
+            TopicResponse = await ExternalService.FetchAvailableTopics(UserDetail.UserId);
+            Debug.LogWarning($"TopicResponse COunt:{TopicResponse?.Count}");
+            Debug.LogWarning($"TopicResponse: {TopicResponse != null}");
+            SharedResources.StartUp();
+        });*/
+    }
 
-        FollowedTopic();
+    private void Update()
+    {
+        if(TopicResponse != null && !TopicResponse.Exists(x => !x?.Sprite) && !hasDisplayedFollowedTopics)
+        {
+            hasDisplayedFollowedTopics = true;
+            FollowedTopic();
+            //keep loading dialogue while hasDisplayedFollowedTopics = false
+        }
     }
 
     private void FollowedTopic()
     {
-        var followedTopics = topics.Where(x => topicIds.Select(y => y.TopicId).Contains(x.Id));
+        var followedTopics = TopicResponse.Where(x => x.IsFollowed);
 
         var item_go = Instantiate(sectionPrefab);
 
@@ -57,7 +61,7 @@ public class StartPage : MonoBehaviour
 
         var topicTitle = item_go.GetComponentInChildren<TextMeshProUGUI>();
 
-        topicTitle.text = "Followed Topics";
+        topicTitle.text = FollowedTopicHeader;
 
         var nestedScrollRect = item_go.GetComponentInChildren<ScrollRect>();
 
@@ -74,7 +78,8 @@ public class StartPage : MonoBehaviour
 
             var profileImage = topic_go.GetComponentInChildren<Image>();
 
-            _ = LoadTopicImageAsync(profileImage, topic.Image);
+            profileImage.sprite = topic.Sprite;
+            //_ = LoadTopicImageAsync(profileImage, topic.Image);
 
             topic_go.GetComponentInChildren<TextMeshProUGUI>().text = topic.Name;
 

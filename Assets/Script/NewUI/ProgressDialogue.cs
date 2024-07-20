@@ -1,18 +1,9 @@
-using System;
 using UnityEngine;
 
 public class ProgressDialogue : MonoBehaviour
 {
     private int IS_ROTATING_ANIM_PARAM;
     private int IS_LOGO_ANIM_PARAM;
-
-    [SerializeField]
-    private Animator loadingCircleAnimator;
-
-    [SerializeField]
-    private Animator logoAnimator;
-
-    float countDown = 10f;
 
     public static ProgressDialogue Instance;
 
@@ -25,36 +16,13 @@ public class ProgressDialogue : MonoBehaviour
         IS_LOGO_ANIM_PARAM = Animator.StringToHash("IsLoading");
     }
 
-    private void Start()
-    {
-        
-
-        /*SetLoadingCircleAnimation(true);
-        SetLogoAnimation(true);*/
-    }
-
-    private void Update()
-    {
-        /*countDown -= Time.deltaTime;
-        if (countDown <= 0)
-        {
-            SetLoadingCircleAnimation(false);
-            SetLogoAnimation(false);
-        }*/
-    }
-
-    /*internal void ResetLoadingPanel(this GameObject loadingPanel, bool value)
-    {
-        loadingPanel.SetActive(value);
-    }*/
-
-    internal void SetLogoAnimation(bool animate)
+    internal void SetLogoAnimation(Animator logoAnimator, bool animate)
     {
         logoAnimator.SetBool(IS_LOGO_ANIM_PARAM, animate);
     }
 
-    internal void SetLoadingCircleAnimation(bool animate)
+    internal void SetLoadingCircleAnimation(Animator circleAnimator, bool animate)
     {
-        loadingCircleAnimator.SetBool(IS_ROTATING_ANIM_PARAM, animate);
+        circleAnimator.SetBool(IS_ROTATING_ANIM_PARAM, animate);
     }
 }
