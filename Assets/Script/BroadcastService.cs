@@ -3,17 +3,19 @@ using System;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
+using static SharedResources;
 
 public class BroadcastService : MonoBehaviour
 {
 
     //private static readonly HttpClient client = new HttpClient();
 
-    [SerializeField]
-    private string userId;//this will be gotten from google oauth
+    /*[SerializeField]
+    private string userId;//this will be gotten from google oauth*/
 
     private HubConnection hubconnection;
-    private string url = "http://localhost:5060/chatHub";
+    private string url = "https://leaderboard-o33d.onrender.com/chatHub";
+    //private string url = "http://localhost:5060/chatHub";
 
     public static BroadcastService Singleton { get; private set; }
 
@@ -21,7 +23,6 @@ public class BroadcastService : MonoBehaviour
     {
         Singleton = this;
     }
-
 
     public async void Authenticate()
     {
@@ -38,11 +39,11 @@ public class BroadcastService : MonoBehaviour
             options.AccessTokenProvider = () => Task.FromResult(token);
         }).Build();
 
-        hubconnection.On<string>("ReceiveMessage", (string opponentScore) =>
+        hubconnection.On("RecieveScore", (int opponentScore) =>
         {
-            Debug.Log($"Message Recieved: {opponentScore}");
+            Debug.Log($"Score Recieved: {opponentScore}");
 
-            MainUI.Singleton.UpdateScoreClient(int.Parse(opponentScore));
+            MainUI.Singleton.UpdateScoreClient(opponentScore);
         });
 
         hubconnection.On<string>("ReceiveConnID", (str) =>
@@ -54,10 +55,7 @@ public class BroadcastService : MonoBehaviour
         {
             await hubconnection.StartAsync();
 
-            /*if (!string.IsNullOrEmpty(userId))
-            {
-                MainUI.Singleton.StartGame();
-            }*/
+            MainUI.Singleton.StartGame();
         }
         catch (Exception ex)
         {
@@ -66,15 +64,20 @@ public class BroadcastService : MonoBehaviour
         }
     }
 
-    public void UpdateScore(int playerScore, string recieverEmail)
+    public void UpdateScore(int playerScore, string userId)
     {
-        hubconnection.InvokeAsync("SendMessageAsync", playerScore, recieverEmail);
+        hubconnection.InvokeAsync("SendMessageAsync", playerScore, userId);
     }
 
     private async Task<string> AuthenticateUser()
     {
+        if(UserDetail == null)
+        {
+            return null;
+        }
         // Replace with your authentication endpoint
-        string authUrl = $"https://localhost:7153/api/login?userId={userId}";
+        //string authUrl = $"https://localhost:7153/api/login?userId={userId}";
+        string authUrl = $"https://leaderboard-o33d.onrender.com/api/login?userId={UserDetail.UserId}";
         UnityWebRequest www = UnityWebRequest.PostWwwForm(authUrl, "");
         www.SetRequestHeader("Content-Type", "application/json");
         await www.SendWebRequestAsync();
@@ -91,31 +94,6 @@ public class BroadcastService : MonoBehaviour
             return null;
         }
     }
-
-    /*private async Task<string> AuthenticateUser(string username, string password)
-    {
-        var credentials = new
-        {
-            Username = username,
-            Password = password
-        };
-
-        string json = JsonConvert.SerializeObject(credentials);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        HttpResponseMessage response = await client.PostAsync("https://yourserver.com/auth/login", content);
-        if (response.IsSuccessStatusCode)
-        {
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(responseBody);
-            return tokenResponse.token;
-        }
-        else
-        {
-            Debug.LogError($"Authentication failed: {response.StatusCode}");
-            return null;
-        }
-    }*/
 
     private async void OnApplicationQuit()
     {
@@ -138,7 +116,7 @@ public static class UnityWebRequestExtensions
             if (request.result == UnityWebRequest.Result.ConnectionError ||
                 request.result == UnityWebRequest.Result.ProtocolError)
             {
-                tcs.SetException(new System.Exception(request.error));
+                tcs.SetException(new Exception(request.error));
             }
             else
             {

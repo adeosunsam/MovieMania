@@ -1,7 +1,11 @@
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static ResponseDtos;
 using static SharedResources;
 
 public class TopicPage : MonoBehaviour
@@ -23,6 +27,8 @@ public class TopicPage : MonoBehaviour
     private NavigationSection onClickTopic;
     private bool hasDisplayedTopics;
 
+    private List<TopicResponseDto> CachedTopic { get; set; }
+
     void Start()
     {
         onClickTopic = FindAnyObjectByType<NavigationSection>();
@@ -30,13 +36,24 @@ public class TopicPage : MonoBehaviour
     }
     private void Update()
     {
-        if (TopicResponse != null && !TopicResponse.Exists(x => !x?.Sprite) && !hasDisplayedTopics)
+        if (TopicResponse != null && !TopicResponse.Exists(x => !x.Sprite) && !hasDisplayedTopics)
         {
             hasDisplayedTopics = true;
             ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, false);
+
+            loadingCircleAnimator.gameObject.SetActive(false);
+
+            //if(CachedTopic == null || !CachedTopic.Any())
+            GetTopics();
+
+            //PlayerPrefExtension<List<TopicResponseDto>>.UpdateDb(TopicResponse);
+        }
+        /*if (CachedTopic != null && CachedTopic.Any())
+        {
+            ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, false);
             loadingCircleAnimator.gameObject.SetActive(false);
             GetTopics();
-        }
+        }*/
     }
 
     public void GetTopics()
@@ -78,9 +95,31 @@ public class TopicPage : MonoBehaviour
 
                 if (onClickTopic)
                 {
-                    onClickTopic.OnClickTopicCard(topic_go, gameObject, topic);
+                    var button = topic_go.GetComponentInChildren<Button>();
+
+                    if(button != null)
+                    {
+                        button.onClick.RemoveAllListeners();
+                        button.onClick.AddListener(() =>
+                        {
+                            onClickTopic.OnClickTopicCard(gameObject, topic);
+                        });
+                    }
+                    
                 }
             }
         }
+    }
+
+    public void GetCachedTopics()
+    {
+        /*if (PlayerPrefExtension<List<TopicResponseDto>>.HasKey())
+        {
+            CachedTopic = PlayerPrefExtension<List<TopicResponseDto>>.Get();
+
+            ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, false);
+            loadingCircleAnimator.gameObject.SetActive(false);
+            GetTopics();
+        }*/
     }
 }

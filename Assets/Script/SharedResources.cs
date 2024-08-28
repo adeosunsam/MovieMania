@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using static RequestDtos;
+using static ResponseDtos;
 
 public class SharedResources
 {

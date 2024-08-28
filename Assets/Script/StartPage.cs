@@ -85,7 +85,16 @@ public class StartPage : MonoBehaviour
 
             if(onClickTopic)
             {
-                onClickTopic.OnClickTopicCard(topic_go, gameObject, topic);
+                var button = topic_go.GetComponentInChildren<Button>();
+
+                if (button != null)
+                {
+                    button.onClick.RemoveAllListeners();
+                    button.onClick.AddListener(() =>
+                    {
+                        onClickTopic.OnClickTopicCard(gameObject, topic);
+                    });
+                }
             }
         }
 

@@ -1,14 +1,17 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using static ResponseDtos;
 
 public class NavigationSection : MonoBehaviour
 {
     [SerializeField]
-    private GameObject selectedTopic;
+    private GameObject selectedTopicPage;
 
     [SerializeField]
     private GameObject backButton;
+
+    private GameObject currentPage;
 
     public event EventHandler<TopicResponseDto> OnTopicSelected;
 
@@ -19,27 +22,20 @@ public class NavigationSection : MonoBehaviour
         Instance = this;
     }
 
-    public virtual void OnClickTopicCard(GameObject topicPrefab, GameObject currentPage, TopicResponseDto topic)
+    public virtual void OnClickTopicCard(GameObject currentPage, TopicResponseDto topic)
     {
-        var button = topicPrefab.GetComponentInChildren<Button>();
+        this.currentPage = currentPage;
 
-        if (button != null)
-        {
-            button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(() =>
-            {
-                currentPage.SetActive(false);
-                selectedTopic.SetActive(true);
-                backButton.SetActive(true);
+        currentPage.SetActive(false);
+        selectedTopicPage.SetActive(true);
+        backButton.SetActive(true);
 
-                OnTopicSelected?.Invoke(this, topic);
+        OnTopicSelected?.Invoke(this, topic);
 
-                OnClickBackButton(currentPage);
-            });
-        }
+        OnClickBackButton(currentPage);
     }
 
-    private void OnClickBackButton(GameObject currentPage)
+    internal void OnClickBackButton(GameObject currentPage)
     {
         var button = backButton.GetComponentInChildren<Button>();
 
@@ -50,8 +46,22 @@ public class NavigationSection : MonoBehaviour
             {
                 currentPage.SetActive(true);
                 backButton.SetActive(false);
-                selectedTopic.SetActive(false);
+                selectedTopicPage.SetActive(false);
             });
         }
+    }
+
+    internal void DeactivateBackButtonOnMenuClick()
+    {
+        if (!currentPage)
+            return;
+
+        var button = backButton.GetComponentInChildren<Button>();
+
+        if (button != null)
+            button.onClick.Invoke();
+
+        currentPage.SetActive(false);
+        currentPage = null;
     }
 }

@@ -1,40 +1,42 @@
 using System;
+using System.Collections;
+using System.Net;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class MainUI : MonoBehaviour
 {
+    /*[SerializeField]
+    private string recieverUserId;
+*/
     [SerializeField]
-    private string recieverEmail;
+    private TextMeshProUGUI playerScore;
 
     [SerializeField]
-    private TextMeshProUGUI Score1;
-
-    [SerializeField]
-    private TextMeshProUGUI Score2;
+    private TextMeshProUGUI opponentScore;
 
     [SerializeField]
     private TextMeshProUGUI QuestionCountDown;
 
-    [SerializeField]
-    private Button questionBtn;
 
     [SerializeField]
-    private GameObject questionPanel;
-
-    //private List<ulong> ConnectedClientId;
+    private GameObject inplayPanelView, inplayPanelLoading;
 
     [SerializeField]
-    private Button clientBtn;
+    private Image playerScoreLineImage, opponentScoreLineImage, countDownImage;
+
     [SerializeField]
-    private Button hostBtn;
+    private Animator loadingCircleAnimator;
 
-
-    internal int score1;
+    internal float score1;
     internal int score2;
-    private float questionTimerMax = 20f;
+    private float questionTimerMax = 10f;
     private float questionTimer;
+
+    private float maxScore = 160.0f;
+    //private float scoreRemaining;
 
     public bool isGameStarted;
 
@@ -46,41 +48,34 @@ public class MainUI : MonoBehaviour
 
     private void Awake()
     {
-        Singleton = this;
+        if(Singleton == null)
+            Singleton = this;
 
-        clientBtn.onClick.AddListener(async () =>
-        {
-            BroadcastService.Singleton.Authenticate();
+        playerScoreLineImage.fillAmount = 0f;
 
-            /*isClient = true;
-            await TestLobby.Instance.StartClientWithRelay();*/
-        });
-
-        hostBtn.onClick.AddListener(async () =>
-        {
-            BroadcastService.Singleton.Authenticate();
-            //await TestLobby.Instance.StartHostWithRelay();
-        });
-
-        /*questionBtn.onClick.AddListener(() =>
-        {
-            PlayerNetwork.Instance.TestServerRpc(isClient: isClient);
-            //TestLobby.Instance.CreateLobby();
-        });*/
+        ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, true);
     }
 
     internal void StartGame()
     {
-        questionPanel.SetActive(true);
-        //StartCoroutine(DelayRoutine());
+        ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, false);
+        inplayPanelLoading.SetActive(false);
+        inplayPanelView.SetActive(true);
         QuestionManager.Singleton.MapQuestionToUI();
         isGameStarted = true;
     }
 
     private void Update()
     {
-        /*if (isGameStarted)
-            QuestionTimer();*/
+        if (isGameStarted)
+            QuestionTimer();
+
+        if (playerScoreLineImage.fillAmount < (score1 / maxScore))
+        {
+            var amountToFill = Math.Clamp(Time.deltaTime * .3f, 0f, 1f / 8f);
+            playerScoreLineImage.fillAmount += amountToFill;
+        }
+
         UpdateScoreClient();
     }
 
@@ -89,9 +84,9 @@ public class MainUI : MonoBehaviour
         if (playerScore != null)
             score1 = playerScore.Value;
 
-        string scoreText = $"Score: {score1}";
+        string scoreText = $"{score1}";
 
-        Score1.SetText(scoreText);
+        this.playerScore.SetText(scoreText);
     }
 
     internal void UpdateScoreClient(int? playerScore = null)
@@ -99,14 +94,14 @@ public class MainUI : MonoBehaviour
         if (playerScore != null)
             score2 = playerScore.Value;
 
-        string scoreText = $"Score: {score2}";
+        string scoreText = $"{score2}";
 
-        Score2.SetText(scoreText);
+        opponentScore.SetText(scoreText);
     }
 
     internal void QuestionTimer()
     {
-        QuestionCountDown.SetText($"{questionTimerMax}");
+        QuestionCountDown.SetText($"{(int)questionTimerMax}");
 
         questionTimer += Time.deltaTime;
 
@@ -123,42 +118,20 @@ public class MainUI : MonoBehaviour
 
         OnTimerCountdown?.Invoke(this, EventArgs.Empty);
 
-        questionTimerMax = 20f;
+        ResetTimer();
     }
 
-    /*internal void Test()
+    internal void ResetTimer()
     {
-        if (isClient)
-        {
-            score2 += (int)questionTimerMax;
-        }
-        else
-        {
-            score1 += (int)questionTimerMax;
-        }
+        questionTimerMax = 10f;
+    }
 
-        //PlayerNetwork.Instance.TestServerRpc(isClient: isClient);
-        //PlayerNetwork.Instance.UpdateScore(PlayerScore(), isClient);
-    }*/
     internal void PlayerScore()
     {
         int score;
-        /*if (isClient)
-        {
-            score2 += (int)questionTimerMax;
-            score = score2;
-            Debug.Log($"22--------------------score2: {score2}");
-        }
-        else
-        {
-            score1 += (int)questionTimerMax;
-            score = score1;
-        }*/
-
-        score1 += (int)questionTimerMax;
-        score = score1;
+        score1 += questionTimerMax * 2f;
+        score = (int)score1;
         UpdateScoreServer(score);
-        BroadcastService.Singleton.UpdateScore(score, recieverEmail);
-        //PlayerNetwork.Instance.UpdateScore(score, isClient);
+        //BroadcastService.Singleton.UpdateScore(score, recieverUserId);
     }
 }

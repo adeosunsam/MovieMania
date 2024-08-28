@@ -1,27 +1,97 @@
+using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BottomNavigation : MonoBehaviour
 {
     [SerializeField]
     private TextMeshProUGUI headerText;
 
-    public GameObject profile;
-    public GameObject startgame;
-    public GameObject topic;
-    public GameObject topicPage;
-    public GameObject activityChallenge;
+    [SerializeField]
+    private GameObject homeButton;
 
-    void Awake()
+    private GameObject previousActiveMenuPage;
+
+    public GameObject[] menuButtons;
+
+    private void Awake()
     {
-        profile.SetActive(false);
-        startgame.SetActive(false);
-        topic.SetActive(false);
-        activityChallenge.SetActive(false);
+        previousActiveMenuPage = previousActiveMenuPage != null ? previousActiveMenuPage : homeButton;
     }
 
+    public void OnMenuClick(GameObject gameObject)
+    {
+        ColorUtility.TryParseHtmlString("#290916", out Color clicked);
+        ColorUtility.TryParseHtmlString("#A6A6A6", out Color unClicked);
 
-    public void OnclickActivity()
+        DeactivateBackButton();
+
+        foreach (var menuItem in menuButtons)
+        {
+            var button = menuItem.GetComponent<Button>();
+            var image = menuItem.GetComponentInChildren<Image>();
+            var menuName = menuItem.GetComponentInChildren<TextMeshProUGUI>();
+
+            if (gameObject == menuItem)
+            {
+                headerText.text = menuItem.name;
+
+                if (button != null)
+                {
+                    button.interactable = false;
+                }
+
+
+                if (!menuItem.name.StartsWith("Play"))
+                {
+                    if (image != null)
+                        image.color = clicked;
+                    if (menuName != null)
+                        menuName.color = clicked;
+                }
+
+                continue;
+            }
+            if (button != null)
+                button.interactable = true;
+
+            if (!menuItem.name.StartsWith("Play"))
+            {
+                if (image != null)
+                    image.color = unClicked;
+                if (menuName != null)
+                    menuName.color = unClicked;
+            }
+        }
+    }
+
+    private void DeactivateBackButton()
+    {
+        var navSection = FindAnyObjectByType<NavigationSection>();
+
+        if (navSection == null)
+            return;
+
+        navSection.DeactivateBackButtonOnMenuClick();
+
+        /*button.onClick.RemoveAllListeners();
+        button.onClick.AddListener(navSection.DeactivateBackButtonOnMenuClick);
+
+        button.onClick.Invoke();*/
+    }
+
+    public void OnClickPage(GameObject page)
+    {
+        if(previousActiveMenuPage  != null)
+            previousActiveMenuPage.SetActive(false);
+
+        page.SetActive(true);
+
+        previousActiveMenuPage = page;
+    }
+
+    /*public void OnclickActivity()
     {
         headerText.text = "Activity";
 
@@ -82,5 +152,5 @@ public class BottomNavigation : MonoBehaviour
         startgame.SetActive(false);
         topic.SetActive(false);
         activityChallenge.SetActive(false);
-    }
+    }*/
 }

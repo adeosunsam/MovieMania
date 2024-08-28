@@ -8,10 +8,7 @@ using static QuestionDto;
 public class QuestionManager : MonoBehaviour
 {
     [SerializeField]
-    private TextMeshProUGUI questionTitle;
-
-    [SerializeField]
-    private TextMeshProUGUI Score2;
+    private TextMeshProUGUI questionText;
 
     [SerializeField]
     private Transform optionParent;
@@ -26,7 +23,8 @@ public class QuestionManager : MonoBehaviour
     private int currentQuestion = 1;
     private void Awake()
     {
-        Singleton = this;
+        if(Singleton == null)
+            Singleton = this;
     }
     // Start is called before the first frame update
     void Start()
@@ -191,7 +189,7 @@ public class QuestionManager : MonoBehaviour
     public void GetQuestion()
     {
         var questions = QueryMovieById();
-        int maxQuestion = 3;
+        int maxQuestion = 4;
         HashSet<long> Ids = new();
         int index = default;
 
@@ -206,11 +204,10 @@ public class QuestionManager : MonoBehaviour
             }
             Ids.Add(questions[range].Id);
 
-            questions[range].IndexNumber = ++index;
+            questions[range].IndexNumber = ++index;// increase index value by 1 each time
             respnse.Add(questions[range]);
             maxQuestion--;
         }
-
         this.questions = respnse;
     }
 
@@ -221,7 +218,7 @@ public class QuestionManager : MonoBehaviour
 
         var question = questions.Single(x => x.IndexNumber == currentQuestion);
 
-        questionTitle.SetText(question.Title);
+        questionText.SetText(question.Title);
 
 
         foreach (var option in question.Options)
@@ -229,10 +226,9 @@ public class QuestionManager : MonoBehaviour
             var item_go = Instantiate(optionPrefab);
             item_go.transform.SetParent(optionParent);
             //reset the item's scale - this can get munged with UI prefabs
-            //item_go.transform.localScale = Vector2.one;
+            item_go.transform.localScale = Vector2.one;
 
-            item_go.transform.Find("OptionAlphabet").GetComponent<TextMeshProUGUI>().text = $"{option.OptionAlphabet}.";
-            item_go.transform.Find("OptionTitle").GetComponent<TextMeshProUGUI>().text = $"{option.OptionTitle}.";
+            item_go.GetComponentInChildren<TextMeshProUGUI>().text = option.OptionTitle;
 
             // Add an onClick listener to the button component
             Button button = item_go.GetComponent<Button>();
@@ -243,6 +239,7 @@ public class QuestionManager : MonoBehaviour
                 button.onClick.AddListener(() =>
                 {
                     MainUI.Singleton.PlayerScore();
+                    MainUI.Singleton.ResetTimer();
                     MoveToNexQuestion();
                 });
             }
@@ -253,7 +250,7 @@ public class QuestionManager : MonoBehaviour
     {
         var childCount = parent.childCount;
 
-        questionTitle.SetText(string.Empty);
+        questionText.SetText(string.Empty);
 
         for (int i = 0; i < childCount; i++)
         {

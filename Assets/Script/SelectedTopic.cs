@@ -2,11 +2,17 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using static SharedResources;
+using static ResponseDtos;
 
 public class SelectedTopic : MonoBehaviour
 {
     private GameObject selectedContent;
+
+    [SerializeField]
+    private Button play;
+
+    [SerializeField]
+    private GameObject pages,inplayPanel;
 
     void Awake()
     {
@@ -15,16 +21,15 @@ public class SelectedTopic : MonoBehaviour
 
     private void Instance_OnTopicSelected(object sender, TopicResponseDto e)
     {
-        Test(e);
+        TopicDetails(e);
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnApplicationQuit()
     {
-
+        NavigationSection.Instance.OnTopicSelected -= Instance_OnTopicSelected;
     }
 
-    private async void Test(TopicResponseDto topic)
+    private void TopicDetails(TopicResponseDto topic)
     {
         var nestedScrollRect = GetComponentInChildren<ScrollRect>();
 
@@ -42,10 +47,10 @@ public class SelectedTopic : MonoBehaviour
                     text.text = topic.Description;
                     break;
                 case "Games":
-                    text.text = topic.QuestionCount.ToString();
+                    text.text = $"{topic.QuestionCount}";
                     break;
                 case "Followers":
-                    text.text = topic.FollowersCount.ToString();
+                    text.text = $"{topic.FollowersCount}";
                     break;
                 case "Friends":
                     text.text = "20";//topic.FriendsCount.ToString();
@@ -61,5 +66,18 @@ public class SelectedTopic : MonoBehaviour
 
         if (image != null)
             image.sprite = topic.Sprite;
+
+        if(play != null)
+        {
+            play.onClick.RemoveAllListeners();
+            play.onClick.AddListener(() =>
+            {
+                inplayPanel.SetActive(true);
+                pages.SetActive(false);
+                BroadcastService.Singleton.Authenticate();
+            });
+        }
     }
+
+
 }

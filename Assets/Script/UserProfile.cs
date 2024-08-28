@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static RequestDtos;
 using static SharedResources;
 
 public class UserProfile : MonoBehaviour
@@ -40,6 +41,7 @@ public class UserProfile : MonoBehaviour
     public void LoadUserStatistics()
     {
         totalGamePlayed.text = $"{GamingCount.TotalGamePlayed}";
+        friends.text = $"{GamingCount.TotalFriends}";
     }
 
     private void LoadNameAndState(UserDetailDto user)
