@@ -9,7 +9,7 @@ public class SharedResources
 {
     internal static void StartUp()
     {
-        Debug.LogWarning($"TopicResponse Coiunt in shared:{TopicResponse?.Count}");
+        Debug.LogWarning($"TopicResponse Count in shared:{TopicResponse?.Count}");
         TopicResponse.ForEach(async x =>
         {   
             x.Sprite = await LoadTopicImageAsync(x.Image);

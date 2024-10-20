@@ -88,7 +88,8 @@ public class GoogleOAuth : MonoBehaviour
             Email = "adeosunsamsamuel30@gmail.com",//task.Result.Email,
             UserName = "allos",//task.Result.FamilyName,
             UserId = "cb277a70231842a1947596435708e245",//task.Result.UserId,
-            Image = "https://res.cloudinary.com/chrismeyer/image/upload/v1652828948/ab71355e-3d40-4ada-95b5-021d08c0e6eeWhatsApp%20Image%202022-03-09%20at%204.37.59%20PM.jpeg.jpg",//task.Result.ImageUrl.AbsoluteUri
+            //Image = "https://res.cloudinary.com/chrismeyer/image/upload/v1652828948/ab71355e-3d40-4ada-95b5-021d08c0e6eeWhatsApp%20Image%202022-03-09%20at%204.37.59%20PM.jpeg.jpg",//task.Result.ImageUrl.AbsoluteUri
+            Image = "AllosTest",//task.Result.ImageUrl.AbsoluteUri
         };
 
         RunJobStart(request);

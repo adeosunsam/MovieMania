@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static RequestDtos;
 using static ResponseDtos;
+using static QuestionDto;
 
 public class ExternalService
 {
@@ -14,7 +15,7 @@ public class ExternalService
     {
         try
         {
-            string path = $"topics/{userId}";
+            string path = $"Movie/topics/{userId}";
             var data = await HttpClientHelper.GetAsync<GenericResponse<ICollection<TopicResponseDto>>>(path);
 
             if (data != null)
@@ -31,7 +32,7 @@ public class ExternalService
     {
         try
         {
-            var url = $"game-count/{userId}";
+            var url = $"Movie/game-count/{userId}";
             var response = await HttpClientHelper.GetAsync<GenericResponse<UserGamingCountDto>>(url);
             if (response != null)
             {
@@ -50,9 +51,26 @@ public class ExternalService
             string jsonPostData = JsonConvert.SerializeObject(request);
             HttpContent content = new StringContent(jsonPostData, Encoding.UTF8, "application/json");
 
-            await HttpClientHelper.PostAsync("create-user", content);
+            await HttpClientHelper.PostAsync("Movie/create-user", content);
         }
         catch { }
+    }
+
+    public static async Task<ICollection<Question>> GetQuestionByTopic(string topicId)
+    {
+        try
+        {
+            string path = $"Movie/question/{topicId}";
+            var data = await HttpClientHelper.GetAsync<GenericResponse<ICollection<Question>>>(path);
+
+            if (data != null)
+            {
+                return data.Data.ToList();
+            }
+        }
+        catch (Exception) { }
+
+        return new List<Question>();
     }
 
     /*public static async Task<TokenResponse> Login(string userId)

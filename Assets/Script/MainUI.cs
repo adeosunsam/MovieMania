@@ -5,42 +5,41 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using static UnityEngine.UI.Image;
 
 public class MainUI : MonoBehaviour
 {
-    /*[SerializeField]
-    private string recieverUserId;
-*/
     [SerializeField]
-    private TextMeshProUGUI playerScore;
+    private TextMeshProUGUI playerScoreBoard;
 
     [SerializeField]
-    private TextMeshProUGUI opponentScore;
+    private TextMeshProUGUI opponentScoreBoard;
 
     [SerializeField]
     private TextMeshProUGUI QuestionCountDown;
 
+    [SerializeField]
+    private TextMeshProUGUI waitingForOpponent;
 
     [SerializeField]
     private GameObject inplayPanelView, inplayPanelLoading;
 
     [SerializeField]
-    private Image playerScoreLineImage, opponentScoreLineImage, countDownImage;
+    private Image playerScoreLineImage, opponentScoreLineImage, countDownImage, waitingLoadingFiller;
 
     [SerializeField]
     private Animator loadingCircleAnimator;
 
-    internal float score1;
-    internal int score2;
+    internal float playerScore;
+    internal int opponentScore;
     private float questionTimerMax = 10f;
     private float questionTimer;
 
     private float maxScore = 160.0f;
-    //private float scoreRemaining;
 
     public bool isGameStarted;
 
-    internal bool isClient;
+    internal bool finishedTestWaitingOpponent = default, opponentJoined;
 
     public event EventHandler OnTimerCountdown;
 
@@ -56,13 +55,48 @@ public class MainUI : MonoBehaviour
         ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, true);
     }
 
+    internal void LoadWaitingText()
+    {
+        if (opponentJoined)
+        {
+            waitingForOpponent.SetText("Loading Questions");
+            return;
+        }
+        waitingForOpponent.SetText("Waiting for Opponent");
+    }
+
+    private void LoadUIProgessForWaiting()
+    {
+        if (waitingLoadingFiller.fillAmount <= 0f 
+            || waitingLoadingFiller.fillOrigin == (int)OriginHorizontal.Left)
+        {
+            waitingLoadingFiller.fillOrigin = (int)OriginHorizontal.Left;
+            waitingLoadingFiller.fillAmount += Time.deltaTime * .3f;
+        }
+
+        if (waitingLoadingFiller.fillAmount >= 1f 
+            || waitingLoadingFiller.fillOrigin == (int)OriginHorizontal.Right)
+        {
+            waitingLoadingFiller.fillOrigin = (int)OriginHorizontal.Right;
+            waitingLoadingFiller.fillAmount -= Time.deltaTime * .3f;
+
+        }
+    }
+
+    private void ResetWaitingFiller()
+    {
+        waitingLoadingFiller.fillOrigin = (int)OriginHorizontal.Left;
+        waitingLoadingFiller.fillAmount = 0f;
+    }
+
     internal void StartGame()
     {
+        finishedTestWaitingOpponent = true;
         ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, false);
         inplayPanelLoading.SetActive(false);
         inplayPanelView.SetActive(true);
-        QuestionManager.Singleton.MapQuestionToUI();
-        isGameStarted = true;
+        ResetWaitingFiller();
+        Singleton.opponentJoined = false;
     }
 
     private void Update()
@@ -70,40 +104,56 @@ public class MainUI : MonoBehaviour
         if (isGameStarted)
             QuestionTimer();
 
-        if (playerScoreLineImage.fillAmount < (score1 / maxScore))
+        if (playerScoreLineImage.fillAmount < (playerScore / maxScore))
         {
             var amountToFill = Math.Clamp(Time.deltaTime * .3f, 0f, 1f / 8f);
             playerScoreLineImage.fillAmount += amountToFill;
         }
 
+        if (opponentScoreLineImage.fillAmount < (opponentScore / maxScore))
+        {
+            var amountToFill = Math.Clamp(Time.deltaTime * .3f, 0f, 1f / 8f);
+            opponentScoreLineImage.fillAmount += amountToFill;
+        }
+
         UpdateScoreClient();
+
+        LoadWaitingText();
+    }
+
+    private void LateUpdate()
+    {
+        if (!finishedTestWaitingOpponent)
+        {
+            LoadUIProgessForWaiting();
+        }
     }
 
     internal void UpdateScoreServer(int? playerScore = null)
     {
         if (playerScore != null)
-            score1 = playerScore.Value;
+            this.playerScore = playerScore.Value;
 
-        string scoreText = $"{score1}";
+        string scoreText = $"{this.playerScore}";
 
-        this.playerScore.SetText(scoreText);
+        this.playerScoreBoard.SetText(scoreText);
     }
 
     internal void UpdateScoreClient(int? playerScore = null)
     {
         if (playerScore != null)
-            score2 = playerScore.Value;
+            opponentScore = playerScore.Value;
 
-        string scoreText = $"{score2}";
+        string scoreText = $"{opponentScore}";
 
-        opponentScore.SetText(scoreText);
+        opponentScoreBoard.SetText(scoreText);
     }
 
     internal void QuestionTimer()
     {
         QuestionCountDown.SetText($"{(int)questionTimerMax}");
 
-        questionTimer += Time.deltaTime;
+        questionTimer += Time.deltaTime * .5f;
 
         if (questionTimer >= 1f)
         {
@@ -124,14 +174,15 @@ public class MainUI : MonoBehaviour
     internal void ResetTimer()
     {
         questionTimerMax = 10f;
+        QuestionCountDown.SetText($"{(int)questionTimerMax}");
     }
 
     internal void PlayerScore()
     {
         int score;
-        score1 += questionTimerMax * 2f;
-        score = (int)score1;
+        playerScore += questionTimerMax * 2f;
+        score = (int)playerScore;
         UpdateScoreServer(score);
-        //BroadcastService.Singleton.UpdateScore(score, recieverUserId);
+        BroadcastService.Singleton.UpdateScore(score);
     }
 }

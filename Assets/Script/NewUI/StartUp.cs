@@ -24,8 +24,11 @@ public class StartUp : MonoBehaviour
 
     private void Start()
     {
-        Testing();
+        //PlayerPrefs.DeleteAll();
+        GetStarted();
         StartCoroutine(nameof(OnboardingRoutine));
+
+        //BroadcastService.Singleton.Authenticate();
     }
 
     IEnumerator OnboardingRoutine()
@@ -50,7 +53,7 @@ public class StartUp : MonoBehaviour
         getStartedPanel.SetActive(true);
     }
 */
-    private void Testing()
+    private void GetStarted()
     {
         var buttons = getStartedPanel.GetComponentsInChildren<Button>();
         var getStartedButton = buttons.FirstOrDefault(x => x.name == "GetStartedButton");

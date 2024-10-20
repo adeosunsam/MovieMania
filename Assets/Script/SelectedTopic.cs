@@ -12,7 +12,7 @@ public class SelectedTopic : MonoBehaviour
     private Button play;
 
     [SerializeField]
-    private GameObject pages,inplayPanel;
+    private GameObject pages,inplayPanel, userViewBackground, userView;
 
     void Awake()
     {
@@ -21,6 +21,7 @@ public class SelectedTopic : MonoBehaviour
 
     private void Instance_OnTopicSelected(object sender, TopicResponseDto e)
     {
+        OnclickOuterSpace();
         TopicDetails(e);
     }
 
@@ -72,12 +73,24 @@ public class SelectedTopic : MonoBehaviour
             play.onClick.RemoveAllListeners();
             play.onClick.AddListener(() =>
             {
-                inplayPanel.SetActive(true);
-                pages.SetActive(false);
-                BroadcastService.Singleton.Authenticate();
+                SelectedUserToPlay(topic.Id);
             });
         }
     }
 
+    private void SelectedUserToPlay(string topicId)
+    {
+        userViewBackground.SetActive(true);
+        userView.SetActive(true);
 
+        /*inplayPanel.SetActive(true);
+        pages.SetActive(false);
+        BroadcastService.Singleton.Authenticate(topicId);*/
+    }
+
+    public void OnclickOuterSpace()
+    {
+        userViewBackground.SetActive(false);
+        userView.SetActive(false);
+    }
 }

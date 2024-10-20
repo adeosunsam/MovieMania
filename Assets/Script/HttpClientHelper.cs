@@ -14,8 +14,9 @@ public static class HttpClientHelper
     {
         IHttpClientFactory httpClientFactory = GetProvider.GetRequiredService<IHttpClientFactory>();
         client = httpClientFactory.CreateClient();
-        //baseUrl = "https://localhost:7153/api/Movie";
-        baseUrl = "https://leaderboard-o33d.onrender.com/api/Movie";
+        baseUrl = "https://localhost:7153/api";
+        //baseUrl = "https://leaderboard-o33d.onrender.com/api/Movie";
+        //baseUrl = "https://odemwingie-001-site1.ktempurl.com/api";
     }
 
     public static async Task<T> GetAsync<T>(string path)
