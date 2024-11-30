@@ -14,6 +14,12 @@ public class SelectedTopic : MonoBehaviour
     [SerializeField]
     private GameObject pages,inplayPanel, userViewBackground, userView;
 
+    [SerializeField]
+    private GameObject sectionPrefab;
+
+    [SerializeField]
+    private Transform sectionContentContainer;
+
     void Awake()
     {
         NavigationSection.Instance.OnTopicSelected += Instance_OnTopicSelected;
@@ -78,11 +84,65 @@ public class SelectedTopic : MonoBehaviour
         }
     }
 
+    public void MapFriends(string topicId)
+    {
+        int childCount = sectionContentContainer.childCount;
+
+        RefreshAvailableFriends(childCount, sectionContentContainer);
+
+        //TODO: work on loading page and for now, display all user on the app except current player
+        if(SharedResources.UserFriends == null)
+        {
+            return;
+        }
+
+        foreach (var user in SharedResources.UserFriends)
+        {
+            var item_go = Instantiate(sectionPrefab);
+
+            item_go.transform.SetParent(sectionContentContainer);
+
+            //reset the item's scale -- this can get munged with UI prefabs
+            item_go.transform.localScale = Vector2.one;
+
+            var userName = item_go.GetComponentInChildren<TextMeshProUGUI>();
+
+            userName.text = $"{user.FirstName} {user.LastName}";
+
+            //var profileImage = item_go.GetComponentInChildren<Image>();
+
+            //profileImage.sprite = u.Sprite;
+
+            var button = item_go.GetComponentInChildren<Button>();
+
+            if (button != null)
+            {
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() =>
+                {
+                    inplayPanel.SetActive(true);
+                    pages.SetActive(false);
+                    BroadcastService.Singleton.Authenticate(topicId);
+                });
+            }
+        }
+    }
+
+    public void RefreshAvailableFriends(int childCount, Transform parent)
+    {
+        for (int i = 0; i < childCount; i++)
+        {
+            Transform child = parent.GetChild(i);
+            Destroy(child.gameObject);
+        }
+    }
+
     private void SelectedUserToPlay(string topicId)
     {
         userViewBackground.SetActive(true);
         userView.SetActive(true);
 
+        MapFriends(topicId);
         /*inplayPanel.SetActive(true);
         pages.SetActive(false);
         BroadcastService.Singleton.Authenticate(topicId);*/

@@ -88,6 +88,12 @@ public class BottomNavigation : MonoBehaviour
 
         page.SetActive(true);
 
+        var activity = FindAnyObjectByType<ActivityPage>();
+        if (activity != null && activity.gameObject.activeInHierarchy)
+        {
+            activity.hasActivityUpdate = true;
+        }
+
         previousActiveMenuPage = page;
     }
 

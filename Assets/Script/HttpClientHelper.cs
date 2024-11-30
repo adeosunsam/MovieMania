@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Newtonsoft.Json;
 using static StartUpInitializer;
+using System;
 
 public static class HttpClientHelper
 {
@@ -12,11 +13,18 @@ public static class HttpClientHelper
 
     static HttpClientHelper()
     {
-        IHttpClientFactory httpClientFactory = GetProvider.GetRequiredService<IHttpClientFactory>();
-        client = httpClientFactory.CreateClient();
-        baseUrl = "https://localhost:7153/api";
-        //baseUrl = "https://leaderboard-o33d.onrender.com/api/Movie";
-        //baseUrl = "https://odemwingie-001-site1.ktempurl.com/api";
+        try
+        {
+            IHttpClientFactory httpClientFactory = GetProvider.GetService<IHttpClientFactory>();
+            client = httpClientFactory.CreateClient();
+            baseUrl = "https://localhost:7153/api";
+            //baseUrl = "https://odemwingiee-001-site1.ltempurl.com/api";
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"HttpClientHelper initialization failed: {ex.Message}");
+            throw;
+        }
     }
 
     public static async Task<T> GetAsync<T>(string path)

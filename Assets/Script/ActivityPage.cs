@@ -2,6 +2,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static ResponseDtos.UserActivityResponse;
 using static SharedResources;
 
 public class ActivityPage : MonoBehaviour
@@ -10,16 +11,34 @@ public class ActivityPage : MonoBehaviour
     private GameObject activityHeader;
 
     [SerializeField]
+    private GameObject pages, inplayPanel;
+
+    [SerializeField]
     private GameObject activityPrefab;
 
     [SerializeField]
     private Transform m_ContentContainer;
 
+    [SerializeField]
+    private TextMeshProUGUI challengeHeaderText;
+
     private Button[] activityHeaderButtons;
+
+    internal bool hasActivityUpdate;
+
+    private ActivityEnum activityEnum;
+
+    public static ActivityPage Singleton;
 
     private void Awake()
     {
+        if(Singleton == null)
+        {
+            Singleton = this;
+        }
+
         activityHeaderButtons = activityHeader.GetComponentsInChildren<Button>();
+        hasActivityUpdate = true;
     }
     void Start()
     {
@@ -31,8 +50,20 @@ public class ActivityPage : MonoBehaviour
                 button.onClick.AddListener(() => ActivityHeaderClicked(button));
             }
         }
+        activityEnum = ActivityEnum.Follow;
 
         GetActivity();
+    }
+
+    private void Update()
+    {
+        if (hasActivityUpdate)
+        {
+            Debug.Log("Updating Challenges Header");
+            challengeHeaderText.text = $"Challenges ({(UserActivity != null ? UserActivity.Count(x => x.Activity == ActivityEnum.Challenge) : 0)})";
+            GetActivity();
+            hasActivityUpdate = false;
+        }
     }
 
     private void ActivityHeaderClicked(Button clickButton)
@@ -55,6 +86,16 @@ public class ActivityPage : MonoBehaviour
 
         // Disable the button:
         clickButton.interactable = false;
+
+        if (clickButton.name.StartsWith("Activity"))
+        {
+            activityEnum = ActivityEnum.Follow;
+        }
+        else
+        {
+            activityEnum = ActivityEnum.Challenge;
+        }
+        hasActivityUpdate = true;
     }
 
     public void RefreshAvailableLevels(int childCount, Transform parent)
@@ -72,7 +113,9 @@ public class ActivityPage : MonoBehaviour
 
         RefreshAvailableLevels(childCount, m_ContentContainer);
 
-        foreach (var activity in playerActivity)
+        if (UserActivity == null) return;
+
+        foreach (var activity in UserActivity.Where(x => x.Activity == activityEnum))
         {
             var item_go = Instantiate(activityPrefab);
             item_go.transform.SetParent(m_ContentContainer);
@@ -85,17 +128,6 @@ public class ActivityPage : MonoBehaviour
             var profileImage = image.Find("ImageMask").GetComponent<Image>();
 
             profileImage.sprite = activity.Sprite;
-            //_ = LoadTopicImageAsync(profileImage, activity.ProfilePicture);
-
-            /*Texture2D texture = SharedResources.LoadTextureFromBase64(activity.ProfilePicture);
-
-            // Create a sprite from the texture
-            if (texture != null)
-            {
-                Sprite sprite = SharedResources.SpriteFromTexture2D(texture);
-
-                profileImage.sprite = sprite;
-            }*/
 
             var textGameObject = item_go.GetComponentsInChildren<Transform>().First(c => !c.Find("Line"));
 
@@ -104,9 +136,23 @@ public class ActivityPage : MonoBehaviour
             var name = texts.First(x => x.name == "Name");
             var activityObject = texts.First(x => x.name == "Activity");
 
-            name.text = activity.Name;
+            name.text = activity.ChallengerName;
 
-            activityObject.text = activity.Activity;
+            activityObject.text = activity.Activity == ActivityEnum.Challenge ? $" challenged you to play {activity.TopicName}"
+                : $" started following you";
+
+            var button = item_go.GetComponentInChildren<Button>();
+
+            if (button != null && activityEnum == ActivityEnum.Challenge)
+            {
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() =>
+                {
+                    inplayPanel.SetActive(true);
+                    pages.SetActive(false);
+                    BroadcastService.Singleton.JoinAndPlay(activity.Id, activity.TopicId);
+                });
+            }
         }
     }
 }

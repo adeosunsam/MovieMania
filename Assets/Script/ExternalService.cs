@@ -73,6 +73,40 @@ public class ExternalService
         return new List<Question>();
     }
 
+    public static async Task<List<UserActivityResponse>> GetUserActivity(string userId)
+    {
+        try
+        {
+            string path = $"Movie/activity/{userId}";
+            var data = await HttpClientHelper.GetAsync<GenericResponse<List<UserActivityResponse>>>(path);
+
+            if (data != null)
+            {
+                return data.Data;
+            }
+        }
+        catch (Exception) { }
+
+        return new List<UserActivityResponse>();
+    }
+
+    public static async Task<ICollection<UserDetailResponseDto>> GetUserFriends(string userId)
+    {
+        try
+        {
+            string path = $"Movie/friends/{userId}";
+            var data = await HttpClientHelper.GetAsync<GenericResponse<ICollection<UserDetailResponseDto>>>(path);
+
+            if (data != null)
+            {
+                return data.Data.ToList();
+            }
+        }
+        catch (Exception) { }
+
+        return new List<UserDetailResponseDto>();
+    }
+
     /*public static async Task<TokenResponse> Login(string userId)
     {
         try

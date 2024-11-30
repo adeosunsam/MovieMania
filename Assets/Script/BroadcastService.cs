@@ -1,22 +1,23 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 using UnityEngine.Networking;
-using static ResponseDtos;
+using static SharedResources;
 
 public class BroadcastService : MonoBehaviour
 {
     [SerializeField]
-    private string userId, groupName;
+    private string opponentId;
 
     private HubConnection hubconnection;
-    //private string url = "https://odemwingie-001-site1.ktempurl.com/chatHub";
+    //private string url = "https://odemwingiee-001-site1.ltempurl.com/chatHub";
     private string url = "http://localhost:5060/chatHub";
+
+    private string groupId;
 
     public static BroadcastService Singleton { get; private set; }
 
@@ -25,7 +26,7 @@ public class BroadcastService : MonoBehaviour
         Singleton = this;
     }
 
-    public async void Authenticate(string topicId)
+    public async void ConnectUser()
     {
         var token = await AuthenticateUser();
 
@@ -35,18 +36,25 @@ public class BroadcastService : MonoBehaviour
             return;
         }
 
-        Debug.Log($"Token is {token}");
-
         hubconnection = new HubConnectionBuilder().WithUrl(url, options =>
         {
             options.AccessTokenProvider = () => Task.FromResult(token);
         }).Build();
 
-        hubconnection.On("RecieveScore", (int opponentScore) =>
+        hubconnection.On("RecieveNotification", () =>
         {
-            Debug.Log($"Score Recieved: {opponentScore}");
-
-            MainUI.Singleton.UpdateScoreClient(opponentScore);
+            Debug.Log($"Notification Recieved");
+            
+            _ = Task.Run(async () =>
+            {
+                var data = await ExternalService.GetUserActivity(UserDetail.UserId);
+                UserActivity = data;
+                ActivityPage.Singleton.hasActivityUpdate = true;
+                UserActivity.ForEach(async x =>
+                {
+                    x.Sprite = await LoadTopicImageAsync(x.UserImage);
+                });
+            });
         });
 
         hubconnection.On("ReceiveMessage", (string message) =>
@@ -54,35 +62,75 @@ public class BroadcastService : MonoBehaviour
             Debug.Log($"Message Recieved: {message}");
         });
 
-        hubconnection.On("ReceiveConnection", () =>
-        {
-            Debug.Log($"Connection Recieved:");
-            MainUI.Singleton.opponentJoined = true;
-
-            _ = Task.Run(async () =>
-            {
-                var data = await ExternalService.GetQuestionByTopic(topicId);
-                QuestionManager.Singleton.questions = data;
-                StartGameInMainThread();
-            });
-            
-        });
-
         try
         {
             await hubconnection.StartAsync();
 
             Debug.Log($"HUBCONNECTION STARTED");
-
-            JoinGroupAsync();
-
-            //MainUI.Singleton.StartGame();
         }
         catch (Exception ex)
         {
             Debug.Log("Error on connection start:   " + ex.Message);
             throw;
         }
+    }
+
+    public void Authenticate(string topicId)
+    {
+        hubconnection.On("RecieveScore", (int opponentScore) =>
+        {
+            Debug.Log($"Score Recieved: {opponentScore}");
+
+            MainUI.Singleton.UpdateScoreClient(opponentScore);
+        });
+
+        hubconnection.On("ReceiveConnection", () =>
+        {
+            Debug.Log($"Connection Recieved: INITIATOR");
+            MainUI.Singleton.opponentJoined = true;
+
+            _ = Task.Run(async () =>
+            {
+                TopicInPlay = TopicResponse.FirstOrDefault(x => x.Id == topicId);
+                var data = await ExternalService.GetQuestionByTopic(topicId);
+                QuestionManager.Singleton.questions = data;
+                StartGameInMainThread();
+            });
+
+        });
+
+        groupId = Guid.NewGuid().ToString();
+
+        CreateGroupAsync(topicId);
+    }
+
+    public void JoinAndPlay(string activityId, string topicId)
+    {
+        hubconnection.On("RecieveScore", (int opponentScore) =>
+        {
+            Debug.Log($"Score Recieved: {opponentScore}");
+
+            MainUI.Singleton.UpdateScoreClient(opponentScore);
+        });
+
+        hubconnection.On("ReceiveConnection", () =>
+        {
+            Debug.Log($"Connection Recieved: RECIEVER");
+            MainUI.Singleton.opponentJoined = true;
+
+            _ = Task.Run(async () =>
+            {
+                TopicInPlay = TopicResponse.FirstOrDefault(x => x.Id == topicId);
+                var data = await ExternalService.GetQuestionByTopic(topicId);
+                QuestionManager.Singleton.questions = data;
+                StartGameInMainThread();
+            });
+
+        });
+
+        groupId = UserActivity.First(x => x.Id == activityId).GroupId;
+
+        JoinGroupAsync(activityId);
     }
 
     private void StartGameInMainThread()
@@ -102,12 +150,17 @@ public class BroadcastService : MonoBehaviour
 
     public void UpdateScore(int playerScore)
     {
-        hubconnection.InvokeAsync("SendMessageAsync", playerScore, groupName);
+        hubconnection.InvokeAsync("SendMessageAsync", playerScore, groupId);
     }
 
-    public void JoinGroupAsync()
+    public void CreateGroupAsync(string topicId)
     {
-        hubconnection.InvokeAsync("JoinGroupAsync", groupName);
+        hubconnection.InvokeAsync("CreateGroupAsync", opponentId, topicId, groupId);
+    }
+
+    public void JoinGroupAsync(string activityId)
+    {
+        hubconnection.InvokeAsync("JoinGroupAsync", activityId);
     }
 
     private async Task<string> AuthenticateUser()
@@ -142,8 +195,7 @@ public class BroadcastService : MonoBehaviour
         {
             HttpContent content = new StringContent(string.Empty, Encoding.UTF8, "application/json");
 
-            //var tokenResponse = await HttpClientHelper.PostAsync<TokenResponse>($"login?userId={UserDetail.UserId}", content);
-            var tokenResponse = await HttpClientHelper.PostAsync<TokenResponse>($"login?userId={userId}", content);
+            var tokenResponse = await HttpClientHelper.PostAsync<TokenResponse>($"login?userId={UserDetail.UserId}", content);
 
             return tokenResponse?.token;
         }

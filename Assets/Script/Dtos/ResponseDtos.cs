@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class ResponseDtos
@@ -20,5 +21,34 @@ public class ResponseDtos
         public string Id { get; set; }
         public int TotalGamePlayed { get; set; }
         public int TotalFriends { get; set; }
+    }
+
+    public class UserDetailResponseDto
+    {
+        public string Id { get; set; }
+        public string UserId { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public string UserName { get; set; }
+        public string Image { get; set; }//image in base64
+    }
+
+    public class UserActivityResponse
+    {
+        public Sprite Sprite { get; set; }
+        public string Id { get; set; }
+        public string ChallengerName { get; set; }
+        public string UserImage { get; set; }
+        public ActivityEnum Activity { get; set; }
+        public string TopicName { get; set; }
+        public string TopicId { get; set; }
+        public string GroupId { get; set; }
+
+        public enum ActivityEnum
+        {
+            Challenge = 1,
+            Follow
+        }
     }
 }
