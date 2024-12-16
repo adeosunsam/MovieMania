@@ -5,7 +5,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using static QuestionDto;
-using static ResponseDtos;
 
 public class InPlayMode : MonoBehaviour
 {
@@ -13,32 +12,36 @@ public class InPlayMode : MonoBehaviour
     private TextMeshProUGUI questionText;
 
     [SerializeField]
-    private Animator questionAnimator, titleAnimator;
+    private Animator titleAnimator;
 
     [SerializeField]
-    private QuestionOption[] optionObject;
+    public GameObject roundOverlay, sectionPrefab;
 
     [SerializeField]
-    public GameObject roundOverlay;
+    private Transform sectionContentContainer;
 
-    internal int OPTION_ANIM_PARAM;
     internal int TITLE_ANIM_PARAM;
 
-    internal bool mapQuestion, updateColor;
+    internal bool mapQuestion;
 
-    private int? correctOptionIndex;
+    private float delayTimer = 2f;
+
+    private Transform correctOptionTransform;
+    private static Color missedOption, correctOption;
 
     public static InPlayMode Instance;
 
     private void Awake()
     {
-        if(Instance == null)
+        if (Instance == null)
             Instance = this;
+
+        ColorUtility.TryParseHtmlString("#7f3a4b", out missedOption);
+        ColorUtility.TryParseHtmlString("#75bd56", out correctOption);
     }
 
     void Start()
     {
-        OPTION_ANIM_PARAM = Animator.StringToHash("OptionTrigger");
         TITLE_ANIM_PARAM = Animator.StringToHash("TitleTrigger");
 
         MainUI.Singleton.OnTimerCountdown += Question_OnTimerCountdown;
@@ -46,24 +49,21 @@ public class InPlayMode : MonoBehaviour
 
     private void Update()
     {
-        if(mapQuestion)
+        if (mapQuestion)
             MapQuestionToUI();
-
-        if (updateColor)
-        {
-            var correctOption = optionObject.FirstOrDefault(x => x.index == correctOptionIndex);
-
-            if(correctOption != null)
-            {
-                Debug.LogWarning("Correct Option PRESENT");
-                correctOption.option.GetComponent<Image>().color = Color.green;
-            }
-        }
     }
 
     private void Question_OnTimerCountdown(object sender, System.EventArgs e)
     {
-        MoveToNexQuestion();
+        //disable all button
+        sectionContentContainer.GetComponentsInChildren<Button>().ToList().ForEach(x => x.interactable = false);
+        
+        UpdateButtonColor(new Dictionary<GameObject, Color>
+        {
+            { correctOptionTransform.gameObject, correctOption }
+        });
+
+        StartCoroutine(DelayOtherOptionFromDisapearing(new List<Transform> { correctOptionTransform }));
     }
 
     IEnumerator TitleRoutine(Question question)
@@ -76,92 +76,113 @@ public class InPlayMode : MonoBehaviour
 
         CountinueExecution(question);
 
-        Debug.Log($"Correct Option Index is: {correctOptionIndex}");
-
         yield return new WaitForSeconds(.5f);
 
         //only start countdown after displaying option
         MainUI.Singleton.isGameStarted = true;
     }
-/*
-    IEnumerator AnswerDelayRoutine()
-    {
-        yield return new WaitForSeconds(2f);
-    }
-*/
+
     void CountinueExecution(Question question)
     {
-        int questionOptionIndex = 0;
-
         foreach (var option in question.Options)
         {
-            questionOptionIndex++;
-            var optionItem = optionObject.FirstOrDefault(x => x.index == questionOptionIndex);
+            var item_go = Instantiate(sectionPrefab);
 
-            if (optionItem == null)
-            {
-                Debug.LogError($"No matching element found for index: {questionOptionIndex}");
-                continue; // Skip to the next iteration if no matching item is found
-            }
+            item_go.transform.SetParent(sectionContentContainer);
 
-            var item_go = optionItem.option;
-
-            item_go.SetActive(true);
+            //reset the item's scale -- this can get munged with UI prefabs
+            item_go.transform.localScale = Vector2.one;
 
             var textMesh = item_go.GetComponentInChildren<TextMeshProUGUI>();
 
             textMesh.text = option.Title;
 
-            correctOptionIndex = option.IsCorrectOption ? questionOptionIndex : correctOptionIndex;
-
             // Add an onClick listener to the button component
-            Button button = item_go.GetComponent<Button>();
+            bool hasButton = item_go.TryGetComponent<Button>(out var button);
 
-            if (button != null)
+            if (hasButton)
             {
+                if (option.IsCorrectOption)
+                {
+                    correctOptionTransform = item_go.transform;
+                }
+
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() =>
                 {
-                    MainUI.Singleton.PlayerScore();
-                    MainUI.Singleton.ResetTimer();
+                    Dictionary<GameObject, Color> objectToUpdate = new();
 
+                    List<Transform> skipOption = new();
+
+                    sectionContentContainer.GetComponentsInChildren<Button>().ToList().ForEach(x => x.interactable = false);
+
+                    skipOption.Add(item_go.transform);
+
+                    if (option.IsCorrectOption)
                     {
-                        optionObject.ToList().ForEach(x =>
-                        {
-                            var test = x.option.GetComponent<Button>();
-
-                            test.interactable = false;
-
-                            if(test != button && x.index != correctOptionIndex)
-                            {
-                                x.option.SetActive(false);
-                            }
-
-                            else if(x.index == correctOptionIndex)
-                            {
-                                updateColor = true;
-                                Debug.Log("Corrent Option Hit");
-                            }
-                        });
+                        objectToUpdate.Add(correctOptionTransform.gameObject, correctOption);
+                        MainUI.Singleton.PlayerScore();
                     }
-                    //Do courotine and wait 2secs
-                    //StartCoroutine(AnswerDelayRoutine());
+                    else if (!option.IsCorrectOption)
+                    {
+                        skipOption.Add(correctOptionTransform);
 
-                    //MoveToNexQuestion();
+                        objectToUpdate.Add(button.gameObject, missedOption);
+                        objectToUpdate.Add(correctOptionTransform.gameObject, correctOption);
+                    }
+
+                    UpdateButtonColor(objectToUpdate);
+
+                    StartCoroutine(DelayOtherOptionFromDisapearing(skipOption));
                 });
             }
         }
+    }
 
-        questionAnimator.SetTrigger(OPTION_ANIM_PARAM);
+    private IEnumerator DelayOtherOptionFromDisapearing(List<Transform> skipOption)
+    {
+        yield return new WaitForSeconds(1f);
+        DarkOutTheOtherOption(sectionContentContainer.childCount, sectionContentContainer, skipOption);
+        MoveToNexQuestion();
+    }
 
-        optionObject.ToList().ForEach(x => x.option.GetComponent<Button>().interactable = true);
+    public void DarkOutTheOtherOption(int childCount, Transform parent, List<Transform> skipOption)
+    {
+        for (int i = 0; i < childCount; i++)
+        {
+            Transform child = parent.GetChild(i);
+
+            if (skipOption.Contains(child))
+                continue;
+
+            var image = child.gameObject.GetComponent<Image>();
+
+            if (image)
+            {
+                Color color = image.color;
+                color.a = 0f; // Set alpha to 0
+                image.color = color;
+            }
+            child.gameObject.GetComponentInChildren<TextMeshProUGUI>().text = string.Empty;
+        }
+    }
+
+    public void RefreshAvailableLevels(int childCount, Transform parent)
+    {
+        for (int i = 0; i < childCount; i++)
+        {
+            Transform child = parent.GetChild(i);
+
+            Destroy(child.gameObject);
+        }
     }
 
     private void UpdateButtonColor(Dictionary<GameObject, Color> objectToUpdate)
     {
-        foreach(var item in objectToUpdate)
+        foreach (var item in objectToUpdate)
         {
             item.Key.GetComponent<Image>().color = item.Value;
+            item.Key.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
         }
     }
 
@@ -178,20 +199,35 @@ public class InPlayMode : MonoBehaviour
 
     private void MoveToNexQuestion()
     {
+        //reset correct option button
+        correctOptionTransform = null;
+
         QuestionManager.Singleton.currentQuestion = Mathf.Clamp(QuestionManager.Singleton.currentQuestion + 1, 1, QuestionManager.Singleton.questions.Count);
-        
+
+        MainUI.Singleton.isGameStarted = false;
+
+        // Start the delay coroutine
+        StartCoroutine(DelayAndProceedRoutine());
+    }
+
+    private IEnumerator DelayAndProceedRoutine()
+    {
+        while (delayTimer > 0f)
+        {
+            delayTimer -= Time.deltaTime;
+            yield return null;
+        }
+
+        delayTimer = 2f;
+
+        MainUI.Singleton.ResetTimer();
         questionText.SetText(string.Empty);
         NextRoundOverlay.Instance.MapNextRoundData();
         roundOverlay.SetActive(true);
         NextRoundOverlay.Instance.showOverlay = true;
 
-        MainUI.Singleton.isGameStarted = false;
-
-        optionObject.ToList().ForEach(x =>
-        {
-            x.option.GetComponentInChildren<TextMeshProUGUI>().text = string.Empty;
-            x.option.SetActive(false);
-        });
+        int childCount = sectionContentContainer.childCount;
+        RefreshAvailableLevels(childCount, sectionContentContainer);
 
         gameObject.SetActive(false);
     }

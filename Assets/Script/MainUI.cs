@@ -1,45 +1,30 @@
 using System;
-using System.Collections;
-using System.Net;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.UI;
 using static UnityEngine.UI.Image;
 
 public class MainUI : MonoBehaviour
 {
     [SerializeField]
-    private TextMeshProUGUI playerScoreBoard;
-
-    [SerializeField]
-    private TextMeshProUGUI opponentScoreBoard;
-
-    [SerializeField]
-    private TextMeshProUGUI QuestionCountDown;
-
-    [SerializeField]
-    private TextMeshProUGUI waitingForOpponent;
-
-    [SerializeField]
-    private GameObject inplayPanelView, inplayPanelLoading;
+    private TextMeshProUGUI playerScoreBoard, opponentScoreBoard, QuestionCountDown, waitingForOpponent;
 
     [SerializeField]
     private Image playerScoreLineImage, opponentScoreLineImage, countDownImage, waitingLoadingFiller;
+
+    [SerializeField]
+    private GameObject inplayPanelView, inplayPanelLoading;
 
     [SerializeField]
     private Animator loadingCircleAnimator;
 
     internal float playerScore;
     internal int opponentScore;
-    private float questionTimerMax = 10f;
-    private float questionTimer;
+    private float questionTimerMax = 10f, questionTimer;
 
-    private float maxScore = 160.0f;
+    private readonly float maxScore = 160.0f;
 
-    public bool isGameStarted;
-
-    internal bool finishedTestWaitingOpponent = default, opponentJoined;
+    internal bool finishedTestWaitingOpponent = default, opponentJoined, isGameStarted;
 
     public event EventHandler OnTimerCountdown;
 
@@ -47,7 +32,7 @@ public class MainUI : MonoBehaviour
 
     private void Awake()
     {
-        if(Singleton == null)
+        if (Singleton == null)
             Singleton = this;
 
         playerScoreLineImage.fillAmount = 0f;
@@ -67,14 +52,14 @@ public class MainUI : MonoBehaviour
 
     private void LoadUIProgessForWaiting()
     {
-        if (waitingLoadingFiller.fillAmount <= 0f 
+        if (waitingLoadingFiller.fillAmount <= 0f
             || waitingLoadingFiller.fillOrigin == (int)OriginHorizontal.Left)
         {
             waitingLoadingFiller.fillOrigin = (int)OriginHorizontal.Left;
             waitingLoadingFiller.fillAmount += Time.deltaTime * .3f;
         }
 
-        if (waitingLoadingFiller.fillAmount >= 1f 
+        if (waitingLoadingFiller.fillAmount >= 1f
             || waitingLoadingFiller.fillOrigin == (int)OriginHorizontal.Right)
         {
             waitingLoadingFiller.fillOrigin = (int)OriginHorizontal.Right;
@@ -153,7 +138,7 @@ public class MainUI : MonoBehaviour
     {
         QuestionCountDown.SetText($"{(int)questionTimerMax}");
 
-        questionTimer += Time.deltaTime * .5f;
+        questionTimer += Time.deltaTime * .7f;
 
         if (questionTimer >= 1f)
         {
@@ -165,10 +150,10 @@ public class MainUI : MonoBehaviour
         {
             return;
         }
+        //This is required to display the current timer when timeOut. WHEN TIMER IS 0.
+        QuestionCountDown.SetText($"{(int)questionTimerMax}");
 
         OnTimerCountdown?.Invoke(this, EventArgs.Empty);
-
-        ResetTimer();
     }
 
     internal void ResetTimer()

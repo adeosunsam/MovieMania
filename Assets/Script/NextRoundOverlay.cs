@@ -76,43 +76,5 @@ public class NextRoundOverlay : MonoBehaviour
         title.text = inplayTopic.Name;
         description.text = inplayTopic.Description;
         titleImageHolder.sprite = inplayTopic.Sprite;
-
-        /*var roundNumber = GameObject.FindGameObjectWithTag("RoundNumber");
-
-        if (roundNumber)
-        {
-            roundNumber.GetComponent<TextMeshProUGUI>().text = $"ROUND {currentQuestion}";
-        }
-
-        var roundDisplay = GameObject.FindGameObjectWithTag("TotalQuestion");
-
-        if (roundDisplay)
-        {
-            roundDisplay.GetComponent<TextMeshProUGUI>().text = $"{currentQuestion} of {totalRound}";
-        }*/
-
-
-
-        /*var texts = gameObject.GetComponentsInChildren<TextMeshProUGUI>();
-        foreach (var text in texts)
-        {
-            switch (text.name)
-            {
-                case "Title":
-                    text.text = inplayTopic.Name;
-                    break;
-                case "Description":
-                    text.text = inplayTopic.Description;
-                    break;
-                default:
-                    break;
-            }
-        }
-*/
-
-        /*var image = gameObject.GetComponentInChildren<Image>();
-
-        if (image != null)
-            image.sprite = inplayTopic.Sprite;*/
     }
 }
