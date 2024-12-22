@@ -202,16 +202,63 @@ public class InPlayMode : MonoBehaviour
         //reset correct option button
         correctOptionTransform = null;
 
-        QuestionManager.Singleton.currentQuestion = Mathf.Clamp(QuestionManager.Singleton.currentQuestion + 1, 1, QuestionManager.Singleton.questions.Count);
+        var nextQuestionNumber = QuestionManager.Singleton.currentQuestion + 1;
 
-        MainUI.Singleton.isGameStarted = false;
+        if(nextQuestionNumber > QuestionManager.Singleton.questions.Count)
+        {
+            ///no more question
+            ///reset the currentQuestion to 0 and display the loading animator
+            QuestionManager.Singleton.currentQuestion = 1;
 
-        // Start the delay coroutine
-        StartCoroutine(DelayAndProceedRoutine());
+            MainUI.Singleton.isGameStarted = false;
+
+            // Start the delay coroutine
+            StartCoroutine(DelayAndProceedLastQuestionRoutine());
+        }
+        else
+        {
+            QuestionManager.Singleton.currentQuestion = nextQuestionNumber;
+
+            MainUI.Singleton.isGameStarted = false;
+
+            // Start the delay coroutine
+            StartCoroutine(DelayAndProceedRoutine());
+        }
+        /*QuestionManager.Singleton.currentQuestion = Mathf.Clamp(QuestionManager.Singleton.currentQuestion + 1, 1, QuestionManager.Singleton.questions.Count);
+
+        if()*/
+
+        
+    }
+
+    private IEnumerator DelayAndProceedLastQuestionRoutine()
+    {
+        //delay the wrong and right from disappearing immediately
+        while (delayTimer > 0f)
+        {
+            delayTimer -= Time.deltaTime;
+            yield return null;
+        }
+
+        delayTimer = 2f;
+
+        MainUI.Singleton.ResetTimer();
+        questionText.SetText(string.Empty);
+        //NextRoundOverlay.Instance.MapNextRoundData();
+        //roundOverlay.SetActive(true);
+        //NextRoundOverlay.Instance.showOverlay = true;
+
+        int childCount = sectionContentContainer.childCount;
+        RefreshAvailableLevels(childCount, sectionContentContainer);
+
+        gameObject.SetActive(false);
+
+        //display the animator
     }
 
     private IEnumerator DelayAndProceedRoutine()
     {
+        //delay the wrong and right from disappearing immediately
         while (delayTimer > 0f)
         {
             delayTimer -= Time.deltaTime;

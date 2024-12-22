@@ -62,6 +62,13 @@ public class BroadcastService : MonoBehaviour
             Debug.Log($"Message Recieved: {message}");
         });
 
+        hubconnection.On("GameOverNotification", () =>
+        {
+            Debug.Log($"Gameover notification Recieved");
+
+            ///Stop loading animator and proceed to display scorecard.
+        });
+
         try
         {
             await hubconnection.StartAsync();
@@ -161,6 +168,11 @@ public class BroadcastService : MonoBehaviour
     public void JoinGroupAsync(string activityId)
     {
         hubconnection.InvokeAsync("JoinGroupAsync", activityId);
+    }
+
+    public void OnGameFinished()
+    {
+        hubconnection.InvokeAsync("OnGameFinished", groupId);
     }
 
     private async Task<string> AuthenticateUser()
