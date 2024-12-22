@@ -15,7 +15,7 @@ public class InPlayMode : MonoBehaviour
     private Animator titleAnimator;
 
     [SerializeField]
-    public GameObject roundOverlay, sectionPrefab;
+    public GameObject roundOverlay, sectionPrefab, gameOverPanel;
 
     [SerializeField]
     private Transform sectionContentContainer;
@@ -254,6 +254,11 @@ public class InPlayMode : MonoBehaviour
         gameObject.SetActive(false);
 
         //display the animator
+        gameOverPanel.SetActive(true);
+
+        ///sends a notification over to the opponent notifying them that you are done playing
+        ///and they are good to go to display your score.
+        BroadcastService.Singleton.OnGameOver();
     }
 
     private IEnumerator DelayAndProceedRoutine()

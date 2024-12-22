@@ -67,6 +67,8 @@ public class BroadcastService : MonoBehaviour
             Debug.Log($"Gameover notification Recieved");
 
             ///Stop loading animator and proceed to display scorecard.
+
+            GameOverSection.Singleton.gameEnded = true;
         });
 
         try
@@ -170,7 +172,7 @@ public class BroadcastService : MonoBehaviour
         hubconnection.InvokeAsync("JoinGroupAsync", activityId);
     }
 
-    public void OnGameFinished()
+    public void OnGameOver()
     {
         hubconnection.InvokeAsync("OnGameFinished", groupId);
     }

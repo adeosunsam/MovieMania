@@ -6,12 +6,12 @@ public class GameOverSection : MonoBehaviour
 {
 
     [SerializeField]
-    private GameObject loadingView;
+    private GameObject loadingView, scoreCardView;
     
     [SerializeField]
     private Animator loadingCircleAnimator;
 
-    private bool gameEnded;
+    internal bool gameEnded;
 
     public static GameOverSection Singleton { get; private set; }
 
@@ -36,6 +36,7 @@ public class GameOverSection : MonoBehaviour
     {
         ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, false);
         loadingView.SetActive(false);
+        scoreCardView.SetActive(true);
     }
 
 }
