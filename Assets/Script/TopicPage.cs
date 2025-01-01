@@ -31,9 +31,16 @@ public class TopicPage : MonoBehaviour
 
     void Start()
     {
+        /*onClickTopic = FindAnyObjectByType<NavigationSection>();
+        ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, true);*/
+    }
+
+    private void OnEnable()
+    {
         onClickTopic = FindAnyObjectByType<NavigationSection>();
         ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, true);
     }
+
     private void Update()
     {
         if (TopicResponse != null && !TopicResponse.Exists(x => !x.Sprite) && !hasDisplayedTopics)

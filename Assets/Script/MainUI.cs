@@ -19,7 +19,7 @@ public class MainUI : MonoBehaviour
     private Animator loadingCircleAnimator;
 
     internal float playerScore;
-    internal int opponentScore;
+    internal int opponentScore, invokedTime;
     private float questionTimerMax = 10f, questionTimer;
 
     private readonly float maxScore = 160.0f;
@@ -36,9 +36,41 @@ public class MainUI : MonoBehaviour
             Singleton = this;
 
         playerScoreLineImage.fillAmount = 0f;
+    }
 
+    private void Update()
+    {
+        if (isGameStarted)
+            QuestionTimer();
+
+        if (playerScoreLineImage.fillAmount < (playerScore / maxScore))
+        {
+            var amountToFill = Math.Clamp(Time.deltaTime * .3f, 0f, 1f / 8f);
+            playerScoreLineImage.fillAmount += amountToFill;
+        }
+
+        if (opponentScoreLineImage.fillAmount < (opponentScore / maxScore))
+        {
+            var amountToFill = Math.Clamp(Time.deltaTime * .3f, 0f, 1f / 8f);
+            opponentScoreLineImage.fillAmount += amountToFill;
+        }
+
+        UpdateScoreClient();
+
+        LoadWaitingText();
+    }
+
+    private void OnEnable()
+    {
+        //LoadAnimation();
+        finishedTestWaitingOpponent = false;
         ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, true);
     }
+
+    /*internal void LoadAnimation() 
+    {
+        ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, true);
+    }*/
 
     internal void LoadWaitingText()
     {
@@ -84,28 +116,6 @@ public class MainUI : MonoBehaviour
         Singleton.opponentJoined = false;
     }
 
-    private void Update()
-    {
-        if (isGameStarted)
-            QuestionTimer();
-
-        if (playerScoreLineImage.fillAmount < (playerScore / maxScore))
-        {
-            var amountToFill = Math.Clamp(Time.deltaTime * .3f, 0f, 1f / 8f);
-            playerScoreLineImage.fillAmount += amountToFill;
-        }
-
-        if (opponentScoreLineImage.fillAmount < (opponentScore / maxScore))
-        {
-            var amountToFill = Math.Clamp(Time.deltaTime * .3f, 0f, 1f / 8f);
-            opponentScoreLineImage.fillAmount += amountToFill;
-        }
-
-        UpdateScoreClient();
-
-        LoadWaitingText();
-    }
-
     private void LateUpdate()
     {
         if (!finishedTestWaitingOpponent)
@@ -121,7 +131,7 @@ public class MainUI : MonoBehaviour
 
         string scoreText = $"{this.playerScore}";
 
-        this.playerScoreBoard.SetText(scoreText);
+        playerScoreBoard.SetText(scoreText);
     }
 
     internal void UpdateScoreClient(int? playerScore = null)
@@ -148,18 +158,32 @@ public class MainUI : MonoBehaviour
 
         if (questionTimerMax > 0f)
         {
+            if(invokedTime > 0)
+            {
+                invokedTime = 0;
+            }
             return;
         }
         //This is required to display the current timer when timeOut. WHEN TIMER IS 0.
         QuestionCountDown.SetText($"{(int)questionTimerMax}");
 
-        OnTimerCountdown?.Invoke(this, EventArgs.Empty);
+        if(invokedTime < 1)
+        {
+            ++invokedTime;
+            OnTimerCountdown?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     internal void ResetTimer()
     {
         questionTimerMax = 10f;
         QuestionCountDown.SetText($"{(int)questionTimerMax}");
+    }
+
+    internal void ResetScore()
+    {
+        playerScoreBoard.SetText("0");
+        opponentScoreBoard.SetText("0");
     }
 
     internal void PlayerScore()

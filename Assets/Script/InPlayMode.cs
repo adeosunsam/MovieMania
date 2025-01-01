@@ -199,6 +199,8 @@ public class InPlayMode : MonoBehaviour
 
     private void MoveToNexQuestion()
     {
+        MainUI.Singleton.isGameStarted = false;
+
         //reset correct option button
         correctOptionTransform = null;
 
@@ -210,7 +212,7 @@ public class InPlayMode : MonoBehaviour
             ///reset the currentQuestion to 0 and display the loading animator
             QuestionManager.Singleton.currentQuestion = 1;
 
-            MainUI.Singleton.isGameStarted = false;
+            //MainUI.Singleton.isGameStarted = false;
 
             // Start the delay coroutine
             StartCoroutine(DelayAndProceedLastQuestionRoutine());
@@ -219,7 +221,7 @@ public class InPlayMode : MonoBehaviour
         {
             QuestionManager.Singleton.currentQuestion = nextQuestionNumber;
 
-            MainUI.Singleton.isGameStarted = false;
+            //MainUI.Singleton.isGameStarted = false;
 
             // Start the delay coroutine
             StartCoroutine(DelayAndProceedRoutine());
@@ -242,14 +244,17 @@ public class InPlayMode : MonoBehaviour
 
         delayTimer = 2f;
 
-        MainUI.Singleton.ResetTimer();
-        questionText.SetText(string.Empty);
+        //MainUI.Singleton.ResetTimer();
+        //questionText.SetText(string.Empty);
         //NextRoundOverlay.Instance.MapNextRoundData();
         //roundOverlay.SetActive(true);
         //NextRoundOverlay.Instance.showOverlay = true;
 
         int childCount = sectionContentContainer.childCount;
         RefreshAvailableLevels(childCount, sectionContentContainer);
+
+        MainUI.Singleton.ResetTimer();
+        questionText.SetText(string.Empty);
 
         gameObject.SetActive(false);
 
@@ -272,11 +277,14 @@ public class InPlayMode : MonoBehaviour
 
         delayTimer = 2f;
 
-        MainUI.Singleton.ResetTimer();
-        questionText.SetText(string.Empty);
+        //MainUI.Singleton.ResetTimer();
+        //questionText.SetText(string.Empty);
         NextRoundOverlay.Instance.MapNextRoundData();
         roundOverlay.SetActive(true);
         NextRoundOverlay.Instance.showOverlay = true;
+
+        MainUI.Singleton.ResetTimer();
+        questionText.SetText(string.Empty);
 
         int childCount = sectionContentContainer.childCount;
         RefreshAvailableLevels(childCount, sectionContentContainer);

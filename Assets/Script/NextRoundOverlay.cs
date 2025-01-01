@@ -22,7 +22,10 @@ public class NextRoundOverlay : MonoBehaviour
     {
         if (Instance == null)
             Instance = this;
+    }
 
+    private void OnEnable()
+    {
         MapNextRoundData();
         showOverlay = true;
     }

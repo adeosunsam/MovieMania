@@ -18,7 +18,7 @@ public class UserProfile : MonoBehaviour
     [SerializeField]
     private Animator loadingCircleAnimator;
 
-    void Start()
+    void OnEnable()
     {
         LoadNameAndState(UserDetail);
         ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, true);

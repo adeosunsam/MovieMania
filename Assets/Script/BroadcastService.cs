@@ -21,6 +21,8 @@ public class BroadcastService : MonoBehaviour
 
     public static BroadcastService Singleton { get; private set; }
 
+    public bool OpponentGameOver { get; set; }
+
     private void Awake()
     {
         Singleton = this;
@@ -67,8 +69,8 @@ public class BroadcastService : MonoBehaviour
             Debug.Log($"Gameover notification Recieved");
 
             ///Stop loading animator and proceed to display scorecard.
-
-            GameOverSection.Singleton.gameEnded = true;
+            OpponentGameOver = true;
+            //GameOverSection.Singleton.gameEnded = true;
         });
 
         try

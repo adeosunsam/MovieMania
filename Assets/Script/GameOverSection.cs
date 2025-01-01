@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class GameOverSection : MonoBehaviour
@@ -7,28 +5,33 @@ public class GameOverSection : MonoBehaviour
 
     [SerializeField]
     private GameObject loadingView, scoreCardView;
-    
+
     [SerializeField]
     private Animator loadingCircleAnimator;
 
-    internal bool gameEnded;
+    //internal bool gameEnded;
 
-    public static GameOverSection Singleton { get; private set; }
+    //public static GameOverSection Singleton { get; private set; }
 
     private void Awake()
     {
-        if (Singleton == null)
-            Singleton = this;
+        //if (Singleton == null)
+        //    Singleton = this;
 
+        
+    }
+
+    private void OnEnable()
+    {
         ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, true);
     }
 
     private void Update()
     {
-        if (gameEnded)
+        if (BroadcastService.Singleton.OpponentGameOver)
         {
             DisplayScoreCard();
-            gameEnded = false;
+            BroadcastService.Singleton.OpponentGameOver = false;
         }
     }
 
@@ -38,5 +41,4 @@ public class GameOverSection : MonoBehaviour
         loadingView.SetActive(false);
         scoreCardView.SetActive(true);
     }
-
 }
