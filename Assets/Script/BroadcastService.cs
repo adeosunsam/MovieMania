@@ -104,7 +104,7 @@ public class BroadcastService : MonoBehaviour
             {
                 TopicInPlay = TopicResponse.FirstOrDefault(x => x.Id == topicId);
                 var data = await ExternalService.GetQuestionByTopic(topicId);
-                QuestionManager.Singleton.questions = data;
+                Questions = data;
                 StartGameInMainThread();
             });
 
@@ -133,7 +133,7 @@ public class BroadcastService : MonoBehaviour
             {
                 TopicInPlay = TopicResponse.FirstOrDefault(x => x.Id == topicId);
                 var data = await ExternalService.GetQuestionByTopic(topicId);
-                QuestionManager.Singleton.questions = data;
+                Questions = data;
                 StartGameInMainThread();
             });
 

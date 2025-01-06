@@ -63,6 +63,10 @@ public class MainUI : MonoBehaviour
     private void OnEnable()
     {
         //LoadAnimation();
+        playerScore = 0f;
+        opponentScore = 0;
+        playerScoreBoard.SetText("0");
+        opponentScoreBoard.SetText("0");
         finishedTestWaitingOpponent = false;
         ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, true);
     }
@@ -180,11 +184,11 @@ public class MainUI : MonoBehaviour
         QuestionCountDown.SetText($"{(int)questionTimerMax}");
     }
 
-    internal void ResetScore()
+   /* internal void ResetScore()
     {
         playerScoreBoard.SetText("0");
         opponentScoreBoard.SetText("0");
-    }
+    }*/
 
     internal void PlayerScore()
     {

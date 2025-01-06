@@ -188,7 +188,7 @@ public class InPlayMode : MonoBehaviour
 
     private void MapQuestionToUI()
     {
-        var questions = QuestionManager.Singleton.questions;
+        var questions = SharedResources.Questions;
         int currentQuestion = QuestionManager.Singleton.currentQuestion;
 
         var question = questions.Single(x => x.IndexNumber == currentQuestion);
@@ -206,7 +206,7 @@ public class InPlayMode : MonoBehaviour
 
         var nextQuestionNumber = QuestionManager.Singleton.currentQuestion + 1;
 
-        if(nextQuestionNumber > QuestionManager.Singleton.questions.Count)
+        if(nextQuestionNumber > SharedResources.Questions.Count)
         {
             ///no more question
             ///reset the currentQuestion to 0 and display the loading animator

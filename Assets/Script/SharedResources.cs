@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using static QuestionDto;
 using static RequestDtos;
 using static ResponseDtos;
 
@@ -92,6 +93,8 @@ public class SharedResources
     internal static UserDetailDto UserDetail { get; set; }
     internal static UserGamingCountDto GamingCount { get; set; }
     internal static List<TopicResponseDto> TopicResponse { get; set; }
+
+    internal static ICollection<Question> Questions { get; set; }
     internal static TopicResponseDto TopicInPlay { get; set; }
     internal static List<UserActivityResponse> UserActivity { get; set; }
     internal static ICollection<UserDetailResponseDto> UserFriends { get; set; }

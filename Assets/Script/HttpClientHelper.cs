@@ -17,8 +17,8 @@ public static class HttpClientHelper
         {
             IHttpClientFactory httpClientFactory = GetProvider.GetService<IHttpClientFactory>();
             client = httpClientFactory.CreateClient();
-            baseUrl = "https://localhost:7153/api";
-            //baseUrl = "https://odemwingiee-001-site1.ltempurl.com/api";
+            //baseUrl = "https://localhost:7153/api";
+            baseUrl = "https://odemwingiee-001-site1.ltempurl.com/api";
         }
         catch (Exception ex)
         {

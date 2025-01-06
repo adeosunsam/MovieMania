@@ -64,7 +64,7 @@ public class NextRoundOverlay : MonoBehaviour
 
     internal void MapNextRoundData()
     {
-        int totalRound = QuestionManager.Singleton.questions.Count;
+        int totalRound = SharedResources.Questions.Count;
         int currentQuestion = QuestionManager.Singleton.currentQuestion;
 
         roundNumberTextMesh.text = $"ROUND {currentQuestion}";

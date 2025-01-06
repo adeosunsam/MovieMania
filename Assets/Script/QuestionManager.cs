@@ -25,7 +25,7 @@ public class QuestionManager : MonoBehaviour
 
     public static QuestionManager Singleton;
 
-    public ICollection<Question> questions;
+    //internal ICollection<Question> questions { get; set; }
 
     public int currentQuestion = 1;
 

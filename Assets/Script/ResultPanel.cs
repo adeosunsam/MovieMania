@@ -72,7 +72,7 @@ public class ResultPanel : MonoBehaviour
             });
         });
 
-        MainUI.Singleton.ResetScore();
+        //MainUI.Singleton.ResetScore();
 
         inplayLoading.SetActive(true);
         gameOverLoading.SetActive(true);
