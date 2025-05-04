@@ -24,11 +24,8 @@ public class StartUp : MonoBehaviour
 
     private void Start()
     {
-        //PlayerPrefs.DeleteAll();
         GetStarted();
         StartCoroutine(nameof(OnboardingRoutine));
-
-        //BroadcastService.Singleton.Authenticate();
     }
 
     IEnumerator OnboardingRoutine()

@@ -1,9 +1,16 @@
-Shader "Custom/RoundedImage"
+﻿Shader "Custom/RoundedImage"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
         _Radius ("Radius", Range(0, 1)) = 0.5
+
+        [HideInInspector] _Stencil("Stencil ID", Float) = 0
+        [HideInInspector] _StencilOp("Stencil Operation", Float) = 0
+        [HideInInspector] _StencilComp("Stencil Comparison", Float) = 8
+        [HideInInspector] _StencilReadMask("Stencil Read Mask", Float) = 255
+        [HideInInspector] _StencilWriteMask("Stencil Write Mask", Float) = 255
+        [HideInInspector] _ColorMask ("Color Mask", Float) = 15
     }
     SubShader
     {
@@ -12,6 +19,15 @@ Shader "Custom/RoundedImage"
 
         Pass
         {
+            Stencil
+            {
+                Ref [_Stencil]
+                Pass[_StencilOp]
+                Comp[_StencilComp]
+                ReadMask[_StencilReadMask]
+                WriteMask[_StencilWriteMask]
+            }
+            ColorMask [_ColorMask]
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag

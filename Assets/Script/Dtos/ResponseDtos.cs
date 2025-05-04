@@ -32,6 +32,7 @@ public class ResponseDtos
         public string Email { get; set; }
         public string UserName { get; set; }
         public string Image { get; set; }//image in base64
+        public Sprite Sprite { get; set; }
     }
 
     public class UserActivityResponse
@@ -39,6 +40,7 @@ public class ResponseDtos
         public Sprite Sprite { get; set; }
         public string Id { get; set; }
         public string ChallengerName { get; set; }
+        public string ChallengerId { get; set; }
         public string UserImage { get; set; }
         public ActivityEnum Activity { get; set; }
         public string TopicName { get; set; }

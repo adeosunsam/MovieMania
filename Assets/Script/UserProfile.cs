@@ -22,6 +22,8 @@ public class UserProfile : MonoBehaviour
     {
         LoadNameAndState(UserDetail);
         ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, true);
+
+        hasDisplayUserStat = false;
     }
 
     void Update()

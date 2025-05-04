@@ -9,7 +9,7 @@ public class BottomNavigation : MonoBehaviour
     private TextMeshProUGUI headerText;
 
     [SerializeField]
-    private GameObject homeButton;
+    private GameObject homePage;
 
     private GameObject previousActiveMenuPage;
 
@@ -17,7 +17,7 @@ public class BottomNavigation : MonoBehaviour
 
     private void Awake()
     {
-        previousActiveMenuPage = previousActiveMenuPage != null ? previousActiveMenuPage : homeButton;
+        previousActiveMenuPage = previousActiveMenuPage != null ? previousActiveMenuPage : homePage;
     }
 
     public void OnMenuClick(GameObject gameObject)
@@ -83,7 +83,7 @@ public class BottomNavigation : MonoBehaviour
 
     public void OnClickPage(GameObject page)
     {
-        if(previousActiveMenuPage  != null)
+        if (previousActiveMenuPage != null)
             previousActiveMenuPage.SetActive(false);
 
         page.SetActive(true);
@@ -91,6 +91,7 @@ public class BottomNavigation : MonoBehaviour
         var activity = FindAnyObjectByType<ActivityPage>();
         if (activity != null && activity.gameObject.activeInHierarchy)
         {
+            Debug.Log($"HAS ACTIVITY PAGE: {activity}");
             activity.hasActivityUpdate = true;
         }
 

@@ -9,16 +9,11 @@ public class GameOverSection : MonoBehaviour
     [SerializeField]
     private Animator loadingCircleAnimator;
 
-    //internal bool gameEnded;
+    private GoogleOAuth googleOAuth;
 
-    //public static GameOverSection Singleton { get; private set; }
-
-    private void Awake()
+    private void Start()
     {
-        //if (Singleton == null)
-        //    Singleton = this;
-
-        
+        googleOAuth = FindAnyObjectByType<GoogleOAuth>();
     }
 
     private void OnEnable()
@@ -31,6 +26,7 @@ public class GameOverSection : MonoBehaviour
         if (BroadcastService.Singleton.OpponentGameOver)
         {
             DisplayScoreCard();
+            googleOAuth.Reload();
             BroadcastService.Singleton.OpponentGameOver = false;
         }
     }

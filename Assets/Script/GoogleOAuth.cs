@@ -1,54 +1,34 @@
-using Google;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Google;
+using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.Networking;
 using static RequestDtos;
 using static ResponseDtos;
 using static SharedResources;
 
 public class GoogleOAuth : MonoBehaviour
 {
-    //[SerializeField]
-    //private TextMeshProUGUI usernameText, fullname, userEmailText, userId, imageUrl, errorText;
     [SerializeField]
     private string userId;
-
 
     [SerializeField]
     private GameObject authPanel, pages;
 
-    private const string webClientId = "1079234788728-hn0tlk70vq570ap3ea4o4j3mqrn268sj.apps.googleusercontent.com";
+    private bool isExternalCallOn;
 
-    private GoogleSignInConfiguration configuration;
-
-    private string imageUrl;
-    private Sprite imageSprite;
-
-    internal bool isImageLoadingStopped;
-
-    //private bool isRunJob;
-
-    //private UserDetailDto request;
-    void Awake()
-    {
-        configuration = new GoogleSignInConfiguration
-        {
-            WebClientId = webClientId,
-            RequestIdToken = true
-        };
-    }
+    internal bool healthy;
 
     private void Update()
     {
-        /*if(request != null && !isRunJob)
+        if (TopicResponse != null && TopicResponse.Any() && (GamingCount == null || UserFriends == null) && !isExternalCallOn)
         {
-            isRunJob = true;
-            RunJobStart();
-        }*/
+            Debug.Log($"RELOADING USER FRIEND AND GAMING COUNT");
+            isExternalCallOn = true;
+            Reload();
+        }
     }
 
     private async Task<bool> HasSavedTopic()
@@ -73,109 +53,121 @@ public class GoogleOAuth : MonoBehaviour
 
     public async void OnSignIn()
     {
-        /*GoogleSignIn.Configuration = configuration;
-        GoogleSignIn.Configuration.UseGameSignIn = false;
-        GoogleSignIn.Configuration.RequestIdToken = true;
-        GoogleSignIn.Configuration.RequestEmail = true;
+        //await GoogleSignIn.DefaultInstance.SignIn().ContinueWith(
+        //  OnAuthenticationFinished, TaskScheduler.Default);
+        //Disconnect();
 
-        await GoogleSignIn.DefaultInstance.SignIn().ContinueWith(
-          OnAuthenticationFinished, TaskScheduler.Default);
-
-        authPanel.SetActive(false);
-        pages.SetActive(true);*/
-
-        var request = new UserDetailDto
         {
-            FirstName = userId,// task.Result.DisplayName,
-            LastName = "Adeosun",//task.Result.GivenName,
-            Email = $"{userId}@gmail.com",//task.Result.Email,
-            UserName = $"allos_{userId}",//task.Result.FamilyName,
-            UserId = userId,//task.Result.UserId,
-            Image = "https://res.cloudinary.com/chrismeyer/image/upload/v1652828948/ab71355e-3d40-4ada-95b5-021d08c0e6eeWhatsApp%20Image%202022-03-09%20at%204.37.59%20PM.jpeg.jpg",//task.Result.ImageUrl.AbsoluteUri
-            //Image = "AllosTest",//task.Result.ImageUrl.AbsoluteUri
-        };
-
-        RunJobStart(request);
-
-        BroadcastService.Singleton.ConnectUser();
-    }
-
-    IEnumerator LoadProfilePics()
-    {
-        using (UnityWebRequest webRequest = UnityWebRequestTexture.GetTexture(imageUrl))
-        {
-            yield return webRequest.SendWebRequest();
-
-            if (webRequest.result == UnityWebRequest.Result.ConnectionError
-                || webRequest.result == UnityWebRequest.Result.ProtocolError)
+            var request = new UserDetailDto
             {
-                isImageLoadingStopped = true;
-                UserDetail.IsImageLoadingStopped = isImageLoadingStopped;
-            }
-            else
-            {
-                Texture2D texture = DownloadHandlerTexture.GetContent(webRequest);
+                FirstName = userId,
+                LastName = "Adeosun",
+                Email = $"{userId}@gmail.com",
+                UserName = $"allos_{userId}",
+                UserId = $"{userId}",
+                Image = "https://res.cloudinary.com/chrismeyer/image/upload/v1652828948/ab71355e-3d40-4ada-95b5-021d08c0e6eeWhatsApp%20Image%202022-03-09%20at%204.37.59%20PM.jpeg.jpg"
+             };
 
-                imageSprite = SpriteFromTexture2D(texture);
-                UserDetail.Sprite = imageSprite;
-            }
+            RunJobStart(request);
+            authPanel.SetActive(false);
+            pages.SetActive(true);
+
+            BroadcastService.Singleton.ConnectUser();
         }
     }
 
-    public void OnSignOut()
-    {
-        //GoogleSignIn.DefaultInstance.SignOut();
-        /*authPanel.SetActive(false);
-        homeView.SetActive(true);*/
-    }
+    //IEnumerator LoadProfilePics(UserDetailDto request)
+    //{
+    //    using (UnityWebRequest webRequest = UnityWebRequestTexture.GetTexture(request.Image))
+    //    {
+    //        yield return webRequest.SendWebRequest();
 
-    public void OnDisconnect()
+    //        if (webRequest.result == UnityWebRequest.Result.ConnectionError
+    //            || webRequest.result == UnityWebRequest.Result.ProtocolError)
+    //        {
+    //            request.IsImageLoadingStopped = true;
+    //            //request.IsImageLoadingStopped = isImageLoadingStopped;
+    //        }
+    //        else
+    //        {
+    //            Texture2D texture = DownloadHandlerTexture.GetContent(webRequest);
+
+    //            request.Sprite = SpriteFromTexture2D(texture);
+    //            //request.Sprite = imageSprite;
+    //        }
+    //    }
+    //}
+
+    public void Disconnect()
     {
-        GoogleSignIn.DefaultInstance.Disconnect();
-    }
-    private void OnApplicationQuit()
-    {
-        //OnSignOut();
+        GoogleSignIn.DefaultInstance.SignOut();
+        //GoogleSignIn.DefaultInstance.Disconnect();
     }
 
     internal void OnAuthenticationFinished(Task<GoogleSignInUser> task)
     {
-        if (task.IsFaulted)
+
+        _ = Task.Run(async () =>
         {
-            using (IEnumerator<Exception> enumerator =
-                    task.Exception.InnerExceptions.GetEnumerator())
+            healthy = await ExternalService.HeathCheck();
+
+            if (!healthy && !task.IsCanceled)
             {
+                MainThreadDispatcher.Enqueue(() =>
+                {
+                    ToastNotification.Show("Connection error\nCheck your internet connection and try again", "error");
+                });
+            }
+            else if (task.IsFaulted)
+            {
+                using IEnumerator<Exception> enumerator =
+                        task.Exception.InnerExceptions.GetEnumerator();
                 if (enumerator.MoveNext())
                 {
                     GoogleSignIn.SignInException error =
                             (GoogleSignIn.SignInException)enumerator.Current;
+
+                    Debug.LogError($"Error signing in: {error.Status}, {error.Message}");
+
+                    MainThreadDispatcher.Enqueue(() =>
+                    {
+                        ToastNotification.Show("Connection error\nCheck your internet connection and try again", "error");
+                    });
                 }
             }
-        }
-        else if (task.IsCanceled) { }
-        else
-        {
-            var request = new UserDetailDto
+            else if (task.IsCanceled) { }
+            else if (task.IsCompletedSuccessfully)
             {
-                FirstName = task.Result.GivenName,
-                LastName = task.Result.FamilyName,
-                Email = task.Result.Email,
-                UserName = task.Result.FamilyName,
-                UserId = task.Result.UserId,
-                Image = task.Result.ImageUrl.AbsoluteUri
-            };
+                var request = new UserDetailDto
+                {
+                    FirstName = task.Result.GivenName,
+                    LastName = task.Result.FamilyName,
+                    Email = task.Result.Email,
+                    UserName = task.Result.FamilyName,
+                    UserId = task.Result.UserId,
+                    Image = task.Result.ImageUrl.AbsoluteUri
+                };
 
-            RunJobStart(request);
-        }
+                Debug.Log($"USER DETAILS: {JsonConvert.SerializeObject(request, Formatting.Indented)}");
+
+                RunJobStart(request);
+
+                MainThreadDispatcher.Enqueue(() =>
+                {
+                    authPanel.SetActive(false);
+                    pages.SetActive(true);
+
+                    BroadcastService.Singleton.ConnectUser();
+                });
+            }
+        });
     }
 
     public void RunJobStart(UserDetailDto request)
     {
         UserDetail = request;
 
-        imageUrl = request.Image;
-
-        StartCoroutine(LoadProfilePics());
+        StartCoroutine(LoadProfilePics(UserDetail));
 
         _ = Task.Run(() => ExternalService.Login(request));
 
@@ -189,19 +181,26 @@ public class GoogleOAuth : MonoBehaviour
         {
             var data = await ExternalService.GetUserFriends(request.UserId);
             UserFriends = data;
+
+            MainThreadDispatcher.Enqueue(() =>
+            {
+                LoadUserImages();
+            });
         });
+
+        //StartCoroutine(SharedResources.LoadProfilePics(UserDetail));
 
         _ = Task.Run(async () =>
         {
             //var data = await ExternalService.GetUserActivity(SharedResources.UserDetail.UserId);
-            var data = await ExternalService.GetUserActivity(userId);
+            var data = await ExternalService.GetUserActivity(request.UserId);
             UserActivity = data;
 
             Debug.Log($"NO OF USER ACTIVITIES FETCHED {data.Count}");
 
             UserActivity.ForEach(async x =>
             {
-                x.Sprite = await LoadTopicImageAsync(x.UserImage);
+                x.Sprite = await LoadImageAsync(x.UserImage);
             });
         });
 
@@ -218,13 +217,24 @@ public class GoogleOAuth : MonoBehaviour
                 });
             }
 
-            var incomingTopics = await ExternalService.FetchAvailableTopics(UserDetail.UserId);
+            var incomingTopics = await ExternalService.FetchAvailableTopics(request.UserId);
 
             if (hasSavedTopic)
             {
                 MainThreadDispatcher.Enqueue(() =>
                 {
                     PlayerPrefExtension<List<TopicResponseDto>>.UpdateDb(incomingTopics);
+                });
+
+                var incomingDict = incomingTopics.ToDictionary(x => x.Id, x => x);
+                TopicResponse.ForEach(x =>
+                {
+                    var incomingData = GetValue(incomingDict, x.Id);
+                    if (incomingData == null) return;
+
+                    x.FollowersCount = incomingData.FollowersCount;
+                    x.QuestionCount = incomingData.QuestionCount;
+                    x.IsFollowed = incomingData.IsFollowed;
                 });
             }
             else
@@ -239,10 +249,42 @@ public class GoogleOAuth : MonoBehaviour
         });
 
 
-
         //remove before building
-        authPanel.SetActive(false);
-        pages.SetActive(true);
+        //authPanel.SetActive(false);
+        //pages.SetActive(true);
+    }
+
+    public T GetValue<T>(Dictionary<string, T> data, string key) where T : class
+    {
+        bool hasValue = data.TryGetValue(key, out T value);
+
+        if (hasValue)
+        {
+            return value;
+        }
+        return null;
+    }
+
+    public void Reload()
+    {
+        _ = Task.Run(async () =>
+        {
+            var data = await ExternalService.FetchUserGamingCount(UserDetail.UserId);
+            GamingCount = data;
+        });
+
+        _ = Task.Run(async () =>
+        {
+            var data = await ExternalService.GetUserFriends(UserDetail.UserId);
+            UserFriends = data;
+
+            MainThreadDispatcher.Enqueue(() =>
+            {
+                LoadUserImages();
+            });
+
+            isExternalCallOn = false;
+        });
     }
 
     /*public void OnSignInSilently()

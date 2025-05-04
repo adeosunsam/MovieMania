@@ -130,8 +130,8 @@ public class MainUI : MonoBehaviour
 
     internal void UpdateScoreServer(int? playerScore = null)
     {
-        if (playerScore != null)
-            this.playerScore = playerScore.Value;
+        //if (playerScore != null)
+        //    this.playerScore = playerScore.Value;
 
         string scoreText = $"{this.playerScore}";
 

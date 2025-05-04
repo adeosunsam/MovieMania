@@ -23,6 +23,10 @@ public class ProgressDialogue : MonoBehaviour
 
     internal void SetLoadingCircleAnimation(Animator circleAnimator, bool animate)
     {
+        if (!circleAnimator.gameObject.activeInHierarchy)
+        {
+            return;
+        }
         circleAnimator.SetBool(IS_ROTATING_ANIM_PARAM, animate);
     }
 }

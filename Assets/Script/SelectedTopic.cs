@@ -1,18 +1,21 @@
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using static ResponseDtos;
+using static SharedResources;
 
 public class SelectedTopic : MonoBehaviour
 {
     private GameObject selectedContent;
 
     [SerializeField]
-    private Button play;
+    private Button play, followButton;
 
     [SerializeField]
-    private GameObject pages,inplayPanel, userViewBackground, userView;
+    private GameObject pages, inplayPanel, userViewBackground, userView;
 
     [SerializeField]
     private GameObject sectionPrefab;
@@ -74,12 +77,67 @@ public class SelectedTopic : MonoBehaviour
         if (image != null)
             image.sprite = topic.Sprite;
 
-        if(play != null)
+        if (topic.IsFollowed)
+        {
+            followButton.interactable = false;
+        }
+        else
+        {
+            followButton.interactable = true;
+        }
+
+        if (play != null)
         {
             play.onClick.RemoveAllListeners();
             play.onClick.AddListener(() =>
             {
                 SelectedUserToPlay(topic.Id);
+            });
+        }
+
+        if (followButton != null)
+        {
+            followButton.onClick.RemoveAllListeners();
+            followButton.onClick.AddListener(() =>
+            {
+                _ = Task.Run(async () =>
+                {
+                    var isSuccessful = await ExternalService.FollowTopic(UserDetail.UserId, topic.Id);
+
+                    if (isSuccessful)
+                    {
+                        TopicResponse.ForEach(x =>
+                        {
+                            if (x.Id == topic.Id)
+                            {
+                                x.IsFollowed = true;
+                                x.FollowersCount++;
+                            }
+                        });
+
+                        //followButton.interactable = true;
+
+                        var updatedList = TopicResponse.Select(x => new TopicResponseDto
+                        {
+                            Id = x.Id,
+                            Name = x.Name,
+                            Description = x.Description,
+                            Category = x.Category,
+                            Image = x.Image,
+                            QuestionCount = x.QuestionCount,
+                            FollowersCount = x.FollowersCount,
+                            IsFollowed = x.IsFollowed
+                        }).ToList();
+
+                        //FETCH DASHBOARD DATA AGAIN TO GET UPDATE COUNTS
+                        //var incomingTopics = await ExternalService.FetchAvailableTopics(UserDetail.UserId);
+
+                        MainThreadDispatcher.Enqueue(() =>
+                        {
+                            PlayerPrefExtension<List<TopicResponseDto>>.UpdateDb(updatedList);
+                        });
+                    }
+                });
             });
         }
     }
@@ -91,12 +149,12 @@ public class SelectedTopic : MonoBehaviour
         RefreshAvailableFriends(childCount, sectionContentContainer);
 
         //TODO: work on loading page and for now, display all user on the app except current player
-        if(SharedResources.UserFriends == null)
+        if (UserFriends == null)
         {
             return;
         }
 
-        foreach (var user in SharedResources.UserFriends)
+        foreach (var user in UserFriends)
         {
             var item_go = Instantiate(sectionPrefab);
 
@@ -109,9 +167,9 @@ public class SelectedTopic : MonoBehaviour
 
             userName.text = $"{user.FirstName} {user.LastName}";
 
-            //var profileImage = item_go.GetComponentInChildren<Image>();
+            var profileImage = item_go.GetComponentInChildren<Image>();
 
-            //profileImage.sprite = u.Sprite;
+            profileImage.sprite = user.Sprite != null ? user.Sprite : profileImage.sprite;
 
             var button = item_go.GetComponentInChildren<Button>();
 
@@ -122,7 +180,8 @@ public class SelectedTopic : MonoBehaviour
                 {
                     inplayPanel.SetActive(true);
                     pages.SetActive(false);
-                    BroadcastService.Singleton.Authenticate(topicId);
+                    OpponentDetail = user;
+                    BroadcastService.Singleton.PlayGame(topicId);
                 });
             }
         }

@@ -1,26 +1,20 @@
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using UnityEngine;
 using static ResponseDtos;
-using static StartUpInitializer;
 
 public static class PlayerPrefExtension<TEntity> where TEntity : class
 {
-    private static IEqualityComparer<TopicResponseDto> _comparer;
+    private static readonly IEqualityComparer<TopicResponseDto> _comparer;
 
     static PlayerPrefExtension()
     {
-        _comparer = GetProvider.GetRequiredService<IEqualityComparer<TopicResponseDto>>();
+        _comparer = StartUpInitializer.GetProvider.GetRequiredService<IEqualityComparer<TopicResponseDto>>();
     }
 
     private const string Topics = "alltopics";
-    /*private const string CoinKey = "coin";
-    private const string ScoreKey = "score";
-    private const string BombKey = "bomb";
-    private const string StarKey = "star";
-    private const string CurrentWeapon = "currentGun";*/
 
     public static void Add(TEntity entity, string prefKey = null)
     {
@@ -64,7 +58,7 @@ public static class PlayerPrefExtension<TEntity> where TEntity : class
         {
             case Topics:
                 {
-                    var savedData = Get(key) as List<TopicResponseDto>;
+                    var savedData = Get(key) as List<TopicResponseDto> ?? new List<TopicResponseDto>();
                     var collection = entity as List<TopicResponseDto>;
                     var updateTopics = collection.Except(savedData, _comparer);
 
@@ -72,47 +66,23 @@ public static class PlayerPrefExtension<TEntity> where TEntity : class
                     if (updateTopics == null || !updateTopics.Any())
                         return;
 
+                    //Debug.Log($"SAVED PAYLOAD: {JsonConvert.SerializeObject(savedData, Formatting.Indented)}");
+                    //Debug.Log($"INCOMING PAYLOAD: {JsonConvert.SerializeObject(collection, Formatting.Indented)}");
+                    //Debug.Log($"UPDATED PAYLOAD: {JsonConvert.SerializeObject(updateTopics, Formatting.Indented)}");
+
+                    savedData.RemoveAll(x => updateTopics.Select(y => y.Id).Contains(x.Id));
+
                     savedData.AddRange(updateTopics);
 
-                    result = JsonConvert.SerializeObject(savedData);
+                    var settings = new JsonSerializerSettings
+                    {
+                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                    };
+
+                    result = JsonConvert.SerializeObject(savedData, settings);
                 }
                 break;
         }
-        /*switch (key)
-        {
-            case StarKey:
-                {
-                    var collection = entity as List<LevelStar>;
-
-                    List<LevelStar> levelStars = JsonConvert.DeserializeObject<List<LevelStar>>(getValue);
-
-                    foreach (var level in collection)
-                    {
-                        var test = levelStars.Single(x => x.level == level.level);
-
-                        //do not update if the new star count is less than the save star count
-                        if (test.starCount >= level.starCount)
-                        {
-                            continue;
-                        }
-
-                        test.starCount = level.starCount;
-
-                        //unlock next level if star is greater than 1
-                        if (test.starCount < 2)
-                        {
-                            continue;
-                        }
-
-                        var nextLevel = levelStars.Single(x => x.level == Mathf.Clamp(level.level + 1, 1, levelStars.Count));
-
-                        nextLevel.levelLocked = false;
-                    }
-
-                    result = JsonConvert.SerializeObject(levelStars);
-                }
-                break;
-        }*/
 
         PlayerPrefs.SetString(key, result);
 
@@ -125,6 +95,7 @@ public static class PlayerPrefExtension<TEntity> where TEntity : class
         if (PlayerPrefs.HasKey(key))
         {
             var result = PlayerPrefs.GetString(key);
+            Debug.Log($"GET ENTITY: {JsonConvert.SerializeObject(result, Formatting.Indented)}");
             return JsonConvert.DeserializeObject<TEntity>(result);
         }
         return null;

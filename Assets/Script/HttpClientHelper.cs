@@ -1,47 +1,92 @@
-using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using UnityEngine;
 using Newtonsoft.Json;
-using static StartUpInitializer;
-using System;
+using UnityEngine;
 
 public static class HttpClientHelper
 {
     private static readonly HttpClient client;
-    private static readonly string baseUrl;
+    private const string baseUrl = "https://oluwakemi-001-site1.jtempurl.com";
+    //private static readonly string baseUrl = "https://localhost:7153/api";
 
     static HttpClientHelper()
     {
+        //var handler = new HttpClientHandler
+        //{
+        //    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+        //};
+
+        //client = new HttpClient(handler)
+        //{
+        //    BaseAddress = new Uri(baseUrl)
+        //};
+        client = new HttpClient
+        {
+            BaseAddress = new Uri(baseUrl)
+        };
+        //client.DefaultRequestHeaders.Accept.Clear();
+        //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    }
+
+    /*static HttpClientHelper()
+    {
         try
         {
+            Debug.Log($"GETPROVIDER CHECK: is null: {GetProvider == null}, CLIENT FACTORY: {GetProvider.GetService<IHttpClientFactory>()}");
             IHttpClientFactory httpClientFactory = GetProvider.GetService<IHttpClientFactory>();
             client = httpClientFactory.CreateClient();
             //baseUrl = "https://localhost:7153/api";
-            baseUrl = "https://odemwingiee-001-site1.ltempurl.com/api";
+            baseUrl = "https://alloss-001-site1.ntempurl.com/api";
         }
         catch (Exception ex)
         {
             Debug.LogError($"HttpClientHelper initialization failed: {ex.Message}");
             throw;
         }
-    }
+    }*/
 
     public static async Task<T> GetAsync<T>(string path)
     {
         try
         {
             string url = $"{baseUrl}/{path}";
+
+            Debug.Log($"URL PATH: {url}");
+
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
             string responseBody = await response.Content.ReadAsStringAsync();
+
+            Debug.Log($"HEALTH CHECK: {responseBody}");
 
             T result = JsonConvert.DeserializeObject<T>(responseBody); //JsonUtility.FromJson<T>(responseBody);
             return result;
         }
         catch (HttpRequestException e)
         {
-            Debug.LogError($"Request error: {e.Message}");
+            Debug.LogError($"Request error: {path}: {e.Message}");
+            return default;
+        }
+    }
+
+    public static async Task<string> GetAsync(string path)
+    {
+        try
+        {
+            string url = $"{baseUrl}/{path}";
+
+            Debug.Log($"URL PATH: {url}");
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            return responseBody;
+        }
+        catch (HttpRequestException e)
+        {
+            Debug.LogError($"Request error: {path}: {e.Message}");
             return default;
         }
     }
@@ -79,3 +124,107 @@ public static class HttpClientHelper
         }
     }
 }
+
+
+
+//public class HttpClientHelper
+//{
+//    private const string baseUrl = "https://oluwakemi-001-site1.jtempurl.com/";
+//    //private static readonly string baseUrl = "https://localhost:7153/api";
+
+//    //public static async Task<T> GetAsync<T>(string path)
+//    //{
+//    //    try
+//    //    {
+//    //        string url = $"{baseUrl}/{path}";
+//    //        HttpResponseMessage response = await client.GetAsync(url);
+//    //        response.EnsureSuccessStatusCode();
+//    //        string responseBody = await response.Content.ReadAsStringAsync();
+
+//    //        T result = JsonConvert.DeserializeObject<T>(responseBody); //JsonUtility.FromJson<T>(responseBody);
+//    //        return result;
+//    //    }
+//    //    catch (HttpRequestException e)
+//    //    {
+//    //        Debug.LogError($"Request error: {e.Message}");
+//    //        return default;
+//    //    }
+//    //}
+
+//    public static async Task<T> GetAsync<T>(string url) where T : class
+//    {
+//        try
+//        {
+//            using UnityWebRequest request = UnityWebRequest.Get(url);
+//            UnityWebRequest response = await request.SendWebRequestAsync();
+//            var data = JsonConvert.DeserializeObject<T>(response.downloadHandler.text);
+
+//            return data;
+//        }
+//        catch (Exception)
+//        {
+//            return null;
+//        }
+//    }
+
+//    public static async Task<T> PostAsync<T>(string path, object body)
+//    {
+//        try
+//        {
+//            string jsonBody = JsonConvert.SerializeObject(body);
+
+//            using UnityWebRequest request = UnityWebRequest.Post($"{baseUrl}{path}", jsonBody, "application/json");
+//            UnityWebRequest response = await request.SendWebRequestAsync();
+
+//            var responseData = JsonConvert.DeserializeObject<T>(response.downloadHandler.text);
+
+//            return responseData;
+//        }
+//        catch (Exception e)
+//        {
+//            Debug.LogError($"POST Request error: {e.Message}");
+//            return default;
+//        }
+//    }
+
+//    public static async Task PostAsync(string path, object body)
+//    {
+//        try
+//        {
+//            string jsonBody = JsonConvert.SerializeObject(body);
+
+//            using UnityWebRequest request = UnityWebRequest.Post($"{baseUrl}{path}", jsonBody, "application/json");
+//            UnityWebRequest response = await request.SendWebRequestAsync();
+//        }
+//        catch (Exception e)
+//        {
+//            Debug.LogError($"POST Request error: {e.Message}");
+//        }
+//    }
+//}
+
+//public static class UnityWebRequestExtensions
+//{
+//    public static Task<UnityWebRequest> SendWebRequestAsync(this UnityWebRequest request)
+//    {
+//        var tcs = new TaskCompletionSource<UnityWebRequest>();
+
+//        request.SetRequestHeader("Authorization", $"Basic MTEyMzU4ODQ6NjAtZGF5ZnJlZXRyaWFs");
+
+//        request.SendWebRequest().completed += _ =>
+//        {
+//            switch (request.result)
+//            {
+//                case UnityWebRequest.Result.ConnectionError:
+//                case UnityWebRequest.Result.ProtocolError:
+//                    //tcs.TrySetException(new Exception(request.error));
+//                    tcs.TrySetResult(request);
+//                    break;
+//                default:
+//                    tcs.TrySetResult(request);
+//                    break;
+//            }
+//        };
+//        return tcs.Task;
+//    }
+//}
