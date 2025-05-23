@@ -1,10 +1,8 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using static ResponseDtos.UserActivityResponse;
 using static SharedResources;
 
 public class UserSearch : MonoBehaviour
@@ -13,7 +11,7 @@ public class UserSearch : MonoBehaviour
     private TMP_InputField searchInputField;
 
     [SerializeField]
-    private GameObject userPrefab;
+    private GameObject userPrefab, friendPage;
 
     [SerializeField]
     private Transform m_ContentContainer;
@@ -24,66 +22,87 @@ public class UserSearch : MonoBehaviour
 
     private float inputTimer, inputTimerInterval = 2f;
 
-    void Start()
+    private void OnDisable()
     {
-
+        searchInputField.text = string.Empty;
     }
 
     // Update is called once per frame
-    void Update()
+    //void Updatee()
+    //{
+    //    inputTimerInterval -= Time.deltaTime;
+
+    //    if(inputTimerInterval < 0f)
+    //    {
+    //        if (!string.IsNullOrWhiteSpace(tempInput) && tempInput.Equals(searchInputField.text, StringComparison.OrdinalIgnoreCase))
+    //        {
+    //            //make the call to fetch data
+    //            Debug.Log("HITTING TESTINGGGG SEARCH");
+    //            searchParam = searchInputField.text;
+    //            _ = Task.Run(async () =>
+    //            {
+    //                var users = await ExternalService.SearchUsers("samuel1"/*UserDetail.UserId*/, searchParam);
+    //                UserSearchDetails = users;
+
+    //                MainThreadDispatcher.Enqueue(() =>
+    //                {
+    //                    LoadUserSearchImages();
+    //                });
+    //                hasDisplayedUsers = false;
+    //            });
+    //        }
+
+    //        inputTimerInterval = 2f;
+    //        searchInputField.text = tempInput = string.Empty;
+    //    }
+    //    else if (!string.IsNullOrEmpty(tempInput) && !tempInput.Equals(searchInputField.text, StringComparison.OrdinalIgnoreCase))
+    //    {
+    //        Debug.Log("RESETTING INTERVAL");
+    //        inputTimerInterval = 2f;
+    //    }
+
+    //    tempInput = searchInputField.text;
+
+
+    //    //if (!searchInputField.text.Equals(tempInput, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(searchInputField.text))
+    //    //{
+    //    //    Debug.LogWarning("HITTING UPDATE SEARCH");
+
+    //    //    tempInput = searchInputField.text;
+
+    //    //    _ = Task.Run(async () =>
+    //    //    {
+    //    //        var users = await ExternalService.SearchUsers("samuel1"/*UserDetail.UserId*/, searchInputField.text);
+    //    //        UserSearchDetails = users;
+
+    //    //        MainThreadDispatcher.Enqueue(() =>
+    //    //        {
+    //    //            LoadUserSearchImages();
+    //    //        });
+    //    //        hasDisplayedUsers = false;
+    //    //    });
+    //    //}
+    //}
+
+    public void OnChangeInputField()
     {
-        inputTimerInterval -= Time.deltaTime;
-
-        if(inputTimerInterval < 0f)
+        if(string.IsNullOrWhiteSpace(searchInputField.text))
         {
-            if (!string.IsNullOrWhiteSpace(tempInput) && tempInput.Equals(searchInputField.text, StringComparison.OrdinalIgnoreCase))
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            Debug.LogWarning($"SEARCH INPUT: {searchInputField.text}");
+            var users = await ExternalService.SearchUsers("samuel1"/*UserDetail.UserId*/, searchInputField.text);
+            UserSearchDetails = users;
+
+            MainThreadDispatcher.Enqueue(() =>
             {
-                //make the call to fetch data
-                Debug.Log("HITTING TESTINGGGG SEARCH");
-                searchParam = searchInputField.text;
-                _ = Task.Run(async () =>
-                {
-                    var users = await ExternalService.SearchUsers("samuel1"/*UserDetail.UserId*/, searchParam);
-                    UserSearchDetails = users;
-
-                    MainThreadDispatcher.Enqueue(() =>
-                    {
-                        LoadUserSearchImages();
-                    });
-                    hasDisplayedUsers = false;
-                });
-            }
-
-            inputTimerInterval = 2f;
-            searchInputField.text = tempInput = string.Empty;
-        }
-        else if (!string.IsNullOrEmpty(tempInput) && !tempInput.Equals(searchInputField.text, StringComparison.OrdinalIgnoreCase))
-        {
-            Debug.Log("RESETTING INTERVAL");
-            inputTimerInterval = 2f;
-        }
-
-        tempInput = searchInputField.text;
-
-
-        //if (!searchInputField.text.Equals(tempInput, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(searchInputField.text))
-        //{
-        //    Debug.LogWarning("HITTING UPDATE SEARCH");
-
-        //    tempInput = searchInputField.text;
-
-        //    _ = Task.Run(async () =>
-        //    {
-        //        var users = await ExternalService.SearchUsers("samuel1"/*UserDetail.UserId*/, searchInputField.text);
-        //        UserSearchDetails = users;
-
-        //        MainThreadDispatcher.Enqueue(() =>
-        //        {
-        //            LoadUserSearchImages();
-        //        });
-        //        hasDisplayedUsers = false;
-        //    });
-        //}
+                LoadUserSearchImages();
+            });
+            hasDisplayedUsers = false;
+        });
     }
 
     private void LateUpdate()
@@ -117,7 +136,7 @@ public class UserSearch : MonoBehaviour
             var profileImage = image.Find("ImageMask").GetComponent<Image>();
 
             profileImage.sprite = user.Sprite == null ? profileImage.sprite : user.Sprite;
-            
+
             var texts = item_go.GetComponentsInChildren<TextMeshProUGUI>();
 
             var name = texts.First(x => x.name == "UserTextField");
@@ -131,9 +150,12 @@ public class UserSearch : MonoBehaviour
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() =>
                 {
-                    //inplayPanel.SetActive(true);
-                    //pages.SetActive(false);
-                    //BroadcastService.Singleton.JoinAndPlay(activity.Id, activity.TopicId);
+                    var navSection = FindAnyObjectByType<NavigationSection>();
+
+                    if (navSection == null)
+                        return;
+
+                    navSection.OnclickFriendInList(friendPage, user);
                 });
             }
         }

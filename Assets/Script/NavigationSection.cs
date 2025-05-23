@@ -1,12 +1,13 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using static RequestDtos;
 using static ResponseDtos;
 
 public class NavigationSection : MonoBehaviour
 {
     [SerializeField]
-    private GameObject selectedTopicPage;
+    private GameObject selectedTopicPage, inviteFriendPage, homePage;
 
     [SerializeField]
     private GameObject backButton;
@@ -15,11 +16,14 @@ public class NavigationSection : MonoBehaviour
 
     public event EventHandler<TopicResponseDto> OnTopicSelected;
 
+    public event EventHandler<UserDetailDto> OnUserSelected;
+
     public static NavigationSection Instance { get; private set; }
 
     private void Awake()
     {
         Instance = this;
+        currentPage = homePage;
     }
 
     public virtual void OnClickTopicCard(GameObject currentPage, TopicResponseDto topic)
@@ -33,6 +37,24 @@ public class NavigationSection : MonoBehaviour
         OnTopicSelected?.Invoke(this, topic);
 
         OnClickBackButton(currentPage);
+    }
+
+    public void OnclickInviteFriend()
+    {
+        homePage.SetActive(false);
+        inviteFriendPage.SetActive(true);
+
+        currentPage = inviteFriendPage;
+    }
+
+    public void OnclickFriendInList(GameObject friendObject, UserDetailDto user)
+    {
+        currentPage.SetActive(false);
+        friendObject.SetActive(true);
+
+        currentPage = friendObject;
+
+        OnUserSelected?.Invoke(this, user);
     }
 
     internal void OnClickBackButton(GameObject currentPage)

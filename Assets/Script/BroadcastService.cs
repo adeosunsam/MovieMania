@@ -115,7 +115,7 @@ public class BroadcastService : MonoBehaviour
             }
         };
 
-        hubconnection.StartAsync().ContinueWith(task =>
+        _ = hubconnection.StartAsync().ContinueWith(task =>
         {
             Debug.Log("Hub connection attempt finished.");
             if (task.IsFaulted || !task.IsCompletedSuccessfully)
