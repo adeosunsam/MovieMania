@@ -1,14 +1,17 @@
 using System.Linq;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static RequestDtos;
 using static ResponseDtos.UserActivityResponse;
 using static SharedResources;
+using static UnityEngine.InputSystem.LowLevel.InputStateHistory;
 
 public class ActivityPage : MonoBehaviour
 {
     [SerializeField]
-    private GameObject activityHeader;
+    private GameObject activityHeader, userViewBackground, actionView;
 
     [SerializeField]
     private GameObject pages, inplayPanel;
@@ -17,7 +20,7 @@ public class ActivityPage : MonoBehaviour
     private GameObject activityPrefab;
 
     [SerializeField]
-    private Transform m_ContentContainer;
+    private Transform m_ContentContainer, actionButton;
 
     [SerializeField]
     private TextMeshProUGUI challengeHeaderText;
@@ -28,6 +31,8 @@ public class ActivityPage : MonoBehaviour
 
     private ActivityEnum activityEnum;
 
+    private GoogleOAuth googleOAuth;
+
     public static ActivityPage Singleton;
 
     private void Awake()
@@ -36,10 +41,18 @@ public class ActivityPage : MonoBehaviour
         {
             Singleton = this;
         }
+        googleOAuth = FindAnyObjectByType<GoogleOAuth>();
 
         activityHeaderButtons = activityHeader.GetComponentsInChildren<Button>();
         hasActivityUpdate = true;
     }
+
+    private void OnEnable()
+    {
+        hasActivityUpdate = true;
+        OnclickOuterSpace();
+    }
+
     void Start()
     {
         if (activityHeaderButtons != null && activityHeaderButtons.Any())
@@ -153,6 +166,75 @@ public class ActivityPage : MonoBehaviour
                     BroadcastService.Singleton.JoinAndPlay(activity.Id, activity.TopicId);
                 });
             }
+            else if (button != null && activityEnum == ActivityEnum.Follow)
+            {
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() =>
+                {
+                    SelectedActivity(activity.SenderId);
+                });
+            }
         }
+    }
+
+    private void SelectedActivity(string senderId)
+    {
+        userViewBackground.SetActive(true);
+        actionView.SetActive(true);
+
+        var buttons = actionButton.GetComponentsInChildren<Button>();
+
+        var acceptButton = buttons?.FirstOrDefault(x => x.name == "Accept");
+        var declineButton = buttons?.FirstOrDefault(x => x.name == "Decline");
+
+        if (acceptButton != null)
+        {
+            acceptButton.onClick.RemoveAllListeners();
+            acceptButton.onClick.AddListener(() =>
+            {
+                _ = Task.Run(async () =>
+                {
+                    GameManager.Instance.LoadingPanelInMainThread();
+                    var response = await ExternalService.ManageUserAction(new ManageFriendRequest
+                    {
+                        UserId = UserDetail.UserId,
+                        FriendId = senderId,
+                        Action = ManageFriend.Accept
+                    });
+
+                    if (response.Data)
+                    {
+                        googleOAuth.Reload();
+
+                        GameManager.Instance.LoadingPanelInMainThread(isSuccessful: true, message: response.ResponseMessage, status: false);
+                    }
+                    else
+                    {
+                        GameManager.Instance.LoadingPanelInMainThread(isSuccessful: false, message: response.ResponseMessage, status: false);
+                    }
+
+                    var getActivity = await ExternalService.GetUserActivity(UserDetail.UserId);
+                    UserActivity = getActivity;
+                    hasActivityUpdate = true;
+                    UserActivity.ForEach(async x =>
+                    {
+                        x.Sprite = await LoadImageAsync(x.UserImage);
+                    });
+
+                    MainThreadDispatcher.Enqueue(() =>
+                    {
+                        OnclickOuterSpace();
+                    });
+                });
+            });
+
+        }
+    }
+
+    //This is called with button onclick
+    public void OnclickOuterSpace()
+    {
+        userViewBackground.SetActive(false);
+        actionView.SetActive(false);
     }
 }

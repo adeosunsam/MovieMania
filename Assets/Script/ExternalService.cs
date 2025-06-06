@@ -149,6 +149,25 @@ public class ExternalService
         }
     }
 
+    public static async Task<GenericResponse<bool>> ManageUserAction(ManageFriendRequest request)
+    {
+        try
+        {
+
+            string jsonPostData = JsonConvert.SerializeObject(request);
+
+            HttpContent content = new StringContent(jsonPostData, Encoding.UTF8, "application/json");
+
+            var response = await HttpClientHelper.PostAsync<GenericResponse<bool>>($"api/Movie/manage-request", content);
+
+            return response;
+        }
+        catch (Exception ex)
+        {
+            return new GenericResponse<bool> { ResponseMessage = ex.Message };
+        }
+    }
+
     public static async Task<ICollection<Question>> GetQuestionByTopic(string topicId)
     {
         try

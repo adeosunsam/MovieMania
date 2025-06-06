@@ -88,12 +88,12 @@ public class BottomNavigation : MonoBehaviour
 
         page.SetActive(true);
 
-        var activity = FindAnyObjectByType<ActivityPage>();
-        if (activity != null && activity.gameObject.activeInHierarchy)
-        {
-            Debug.Log($"HAS ACTIVITY PAGE: {activity}");
-            activity.hasActivityUpdate = true;
-        }
+        //var activity = FindAnyObjectByType<ActivityPage>();
+        //if (activity != null && activity.gameObject.activeInHierarchy)
+        //{
+        //    Debug.Log($"HAS ACTIVITY PAGE: {activity}");
+        //    activity.hasActivityUpdate = true;
+        //}
 
         previousActiveMenuPage = page;
     }

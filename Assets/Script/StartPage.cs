@@ -41,6 +41,7 @@ public class StartPage : MonoBehaviour
         Debug.Log("START PAGE ENABLED");
         startPageLoadingCircleAnimator.gameObject.SetActive(true);
         hasDisplayedFollowedTopics = false;
+        hasDisplayedUserFriends = false;
 
         ProgressDialogue.Instance.SetLoadingCircleAnimation(startPageLoadingCircleAnimator, true);
         ProgressDialogue.Instance.SetLoadingCircleAnimation(friendLoadingAnimator, true);

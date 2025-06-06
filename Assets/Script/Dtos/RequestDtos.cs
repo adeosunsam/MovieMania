@@ -22,4 +22,17 @@ public class RequestDtos
         public string UserId { get; set; }
         public string FriendId { get; set; }
     }
+
+    public class ManageFriendRequest
+    {
+        public string UserId { get; set; }
+        public string FriendId { get; set; }
+        public ManageFriend Action { get; set; }
+    }
+
+    public enum ManageFriend
+    {
+        Accept = 1,
+        Decline
+    }
 }

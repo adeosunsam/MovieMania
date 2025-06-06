@@ -129,30 +129,6 @@ public class SelectedTopic : MonoBehaviour
         }
     }
 
-    //private void LoadingPanelInMainThread(bool isSuccessful = true, string message = "success", bool status = true)
-    //{
-    //    MainThreadDispatcher.Enqueue(() =>
-    //    {
-    //        try
-    //        {
-    //            //StartCoroutine(LoadPanelRoutine());
-    //            if (loadingPanel == null)
-    //            {
-    //                return;
-    //            }
-
-    //            if(!status)
-    //                ToastNotification.Show(message, isSuccessful ? "success" : "error");
-
-    //            loadingPanel.gameObject.SetActive(status);
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            Debug.LogError(ex.Message);
-    //        }
-    //    });
-    //}
-
     public void MapFriends(string topicId)
     {
         int childCount = sectionContentContainer.childCount;
