@@ -27,7 +27,7 @@ public class GoogleOAuth : MonoBehaviour
         {
             Debug.Log($"RELOADING USER FRIEND AND GAMING COUNT");
             isExternalCallOn = true;
-            Reload();
+            //Reload();
         }
     }
 
@@ -218,6 +218,8 @@ public class GoogleOAuth : MonoBehaviour
             }
 
             var incomingTopics = await ExternalService.FetchAvailableTopics(request.UserId);
+
+            Debug.Log($"NO OF TOPICS FETCHED {incomingTopics.Count}");
 
             if (hasSavedTopic)
             {

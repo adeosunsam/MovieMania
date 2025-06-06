@@ -1,7 +1,10 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
+using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 using UnityEngine.UI;
 using static ResponseDtos;
@@ -102,45 +105,53 @@ public class SelectedTopic : MonoBehaviour
             {
                 _ = Task.Run(async () =>
                 {
+                    GameManager.Instance.LoadingPanelInMainThread();
                     var isSuccessful = await ExternalService.FollowTopic(UserDetail.UserId, topic.Id);
-
+                    
                     if (isSuccessful)
                     {
-                        TopicResponse.ForEach(x =>
-                        {
-                            if (x.Id == topic.Id)
-                            {
-                                x.IsFollowed = true;
-                                x.FollowersCount++;
-                            }
-                        });
-
-                        //followButton.interactable = true;
-
-                        var updatedList = TopicResponse.Select(x => new TopicResponseDto
-                        {
-                            Id = x.Id,
-                            Name = x.Name,
-                            Description = x.Description,
-                            Category = x.Category,
-                            Image = x.Image,
-                            QuestionCount = x.QuestionCount,
-                            FollowersCount = x.FollowersCount,
-                            IsFollowed = x.IsFollowed
-                        }).ToList();
-
-                        //FETCH DASHBOARD DATA AGAIN TO GET UPDATE COUNTS
-                        //var incomingTopics = await ExternalService.FetchAvailableTopics(UserDetail.UserId);
-
+                        var incomingTopics = await ExternalService.FetchAvailableTopics(UserDetail.UserId);
                         MainThreadDispatcher.Enqueue(() =>
                         {
-                            PlayerPrefExtension<List<TopicResponseDto>>.UpdateDb(updatedList);
+                            PlayerPrefExtension<List<TopicResponseDto>>.UpdateDb(incomingTopics);
                         });
+                        TopicResponse = incomingTopics;
+                        StartUp();
+                        
+                        GameManager.Instance.LoadingPanelInMainThread(isSuccessful: true, message: "topic followed successfully", status: false);
+                    }
+                    else
+                    {
+                        GameManager.Instance.LoadingPanelInMainThread(isSuccessful: false, message: "Unable to follow topic", status: false);
                     }
                 });
             });
         }
     }
+
+    //private void LoadingPanelInMainThread(bool isSuccessful = true, string message = "success", bool status = true)
+    //{
+    //    MainThreadDispatcher.Enqueue(() =>
+    //    {
+    //        try
+    //        {
+    //            //StartCoroutine(LoadPanelRoutine());
+    //            if (loadingPanel == null)
+    //            {
+    //                return;
+    //            }
+
+    //            if(!status)
+    //                ToastNotification.Show(message, isSuccessful ? "success" : "error");
+
+    //            loadingPanel.gameObject.SetActive(status);
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            Debug.LogError(ex.Message);
+    //        }
+    //    });
+    //}
 
     public void MapFriends(string topicId)
     {

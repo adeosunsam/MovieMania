@@ -7,51 +7,28 @@ using UnityEngine;
 public static class HttpClientHelper
 {
     private static readonly HttpClient client;
-    private const string baseUrl = "https://oluwakemi-001-site1.jtempurl.com";
+    private const string baseUrl = "https://samallos-001-site1.anytempurl.com";
     //private static readonly string baseUrl = "https://localhost:7153/api";
+    private static readonly string authToken;
 
     static HttpClientHelper()
     {
-        //var handler = new HttpClientHandler
-        //{
-        //    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-        //};
+        authToken = GameManager.Instance.token; // Replace with your actual token
 
-        //client = new HttpClient(handler)
-        //{
-        //    BaseAddress = new Uri(baseUrl)
-        //};
+        Debug.Log($"AUTH TOKEN: {authToken}");
+
         client = new HttpClient
         {
             BaseAddress = new Uri(baseUrl)
         };
-        //client.DefaultRequestHeaders.Accept.Clear();
-        //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        //client.DefaultRequestHeaders.Add("Authorization", $"Basic {authToken}");
     }
-
-    /*static HttpClientHelper()
-    {
-        try
-        {
-            Debug.Log($"GETPROVIDER CHECK: is null: {GetProvider == null}, CLIENT FACTORY: {GetProvider.GetService<IHttpClientFactory>()}");
-            IHttpClientFactory httpClientFactory = GetProvider.GetService<IHttpClientFactory>();
-            client = httpClientFactory.CreateClient();
-            //baseUrl = "https://localhost:7153/api";
-            baseUrl = "https://alloss-001-site1.ntempurl.com/api";
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"HttpClientHelper initialization failed: {ex.Message}");
-            throw;
-        }
-    }*/
 
     public static async Task<T> GetAsync<T>(string path)
     {
         try
         {
             string url = $"{baseUrl}/{path}";
-
             Debug.Log($"URL PATH: {url}");
 
             HttpResponseMessage response = await client.GetAsync(url);

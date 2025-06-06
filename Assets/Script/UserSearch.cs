@@ -94,7 +94,7 @@ public class UserSearch : MonoBehaviour
         _ = Task.Run(async () =>
         {
             Debug.LogWarning($"SEARCH INPUT: {searchInputField.text}");
-            var users = await ExternalService.SearchUsers("samuel1"/*UserDetail.UserId*/, searchInputField.text);
+            var users = await ExternalService.SearchUsers(UserDetail.UserId, searchInputField.text);
             UserSearchDetails = users;
 
             MainThreadDispatcher.Enqueue(() =>

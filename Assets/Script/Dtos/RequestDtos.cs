@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using UnityEngine;
 
 public class RequestDtos
@@ -16,4 +17,9 @@ public class RequestDtos
         public string Image { get; set; }
     }
 
+    public class UserFollowRequest
+    {
+        public string UserId { get; set; }
+        public string FriendId { get; set; }
+    }
 }

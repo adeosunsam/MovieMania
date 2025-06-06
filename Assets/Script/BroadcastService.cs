@@ -13,7 +13,7 @@ public class BroadcastService : MonoBehaviour
     private string opponentId;
 
     private HubConnection hubconnection;
-    private string url = "https://oluwakemi-001-site1.jtempurl.com/chatHub";
+    private string url = "https://samallos-001-site1.anytempurl.com/chatHub";
     //private string url = "http://localhost:5060/chatHub";
 
     private string groupId;
@@ -47,7 +47,7 @@ public class BroadcastService : MonoBehaviour
 
         hubconnection.On("RecieveNotification", () =>
         {
-            Debug.Log($"Notification Recieved");
+            Debug.Log($"Notification Received");
 
             _ = Task.Run(async () =>
             {
@@ -136,101 +136,6 @@ public class BroadcastService : MonoBehaviour
                 Debug.LogError($"ERROR ON CONNECTION: {task.Exception?.GetBaseException().Message}");
             }
         });
-
-        //_ = Task.Run(() =>
-        //{
-        //    hubconnection = new HubConnectionBuilder().WithUrl(url, options =>
-        //    {
-        //        options.AccessTokenProvider = () => Task.FromResult(token);
-        //    }).Build();
-
-        //    hubconnection.On("RecieveNotification", () =>
-        //    {
-        //        Debug.Log($"Notification Recieved");
-
-        //        _ = Task.Run(async () =>
-        //        {
-        //            var data = await ExternalService.GetUserActivity(UserDetail.UserId);
-        //            UserActivity = data;
-        //            ActivityPage.Singleton.hasActivityUpdate = true;
-        //            UserActivity.ForEach(async x =>
-        //            {
-        //                x.Sprite = await LoadImageAsync(x.UserImage);
-        //            });
-        //        });
-        //    });
-
-        //    hubconnection.On("RecieveScore", (int opponentScore) =>
-        //    {
-        //        Debug.Log($"Score Recieved: {opponentScore}");
-
-        //        MainUI.Singleton.UpdateScoreClient(opponentScore);
-        //    });
-
-        //    hubconnection.On("ReceiveMessage", (string message) =>
-        //    {
-        //        Debug.Log($"Message Recieved: {message}");
-        //    });
-
-        //    hubconnection.On("GameOverNotification", () =>
-        //    {
-        //        Debug.Log($"Gameover notification Recieved");
-
-        //        ///Stop loading animator and proceed to display scorecard.
-        //        OpponentGameOver = true;
-        //        //GameOverSection.Singleton.gameEnded = true;
-        //    });
-
-        //    hubconnection.On("ReceiveConnection", () =>
-        //    {
-        //        Debug.Log($"Connection Recieved: BOTH");
-        //        MainUI.Singleton.opponentJoined = true;
-
-        //        _ = Task.Run(async () =>
-        //        {
-        //            TopicInPlay = TopicResponse.FirstOrDefault(x => x.Id == topicId);
-        //            var data = await ExternalService.GetQuestionByTopic(topicId);
-        //            Questions = data;
-        //            StartGameInMainThread();
-        //        });
-
-        //    });
-
-        //    Debug.Log("Attempting to start the connection...");
-
-        //    hubconnection.StartAsync().ContinueWith(task =>
-        //    {
-        //        Debug.Log("Hub connection attempt finished.");
-        //        if (task.IsFaulted || !task.IsCompletedSuccessfully)
-        //        {
-        //            Debug.LogError("Error starting connection: " + task.Exception?.GetBaseException().Message);
-        //        }
-        //        else if (task.IsCompletedSuccessfully)
-        //        {
-        //            Debug.Log($"HUBCONNECTION STARTED");
-
-        //            //_ = Task.Run(async () =>
-        //            //{
-        //            //    OpponentDetail.Sprite = await LoadImageAsync(OpponentDetail.Image);
-        //            //});
-        //        }
-        //        else
-        //        {
-        //            Debug.LogError($"ERROR ON CONNECTION: {task.Exception?.GetBaseException().Message}");
-        //        }
-        //    });
-        //}); 
-
-
-        //try
-        //{
-
-        //}
-        //catch (Exception ex)
-        //{
-        //    Debug.Log("Error on connection start:   " + ex.Message);
-        //    throw;
-        //}
     }
 
     public void PlayGame(string topicId)
@@ -250,7 +155,7 @@ public class BroadcastService : MonoBehaviour
 
         groupId = userActivity.GroupId;
 
-        OpponentDetail = UserFriends.First(x => x.UserId == userActivity.ChallengerId);
+        OpponentDetail = UserFriends.First(x => x.UserId == userActivity.SenderId);
 
         JoinGroupAsync(activityId);
     }
@@ -284,6 +189,12 @@ public class BroadcastService : MonoBehaviour
     public void JoinGroupAsync(string activityId)
     {
         hubconnection.InvokeAsync("JoinGroupAsync", activityId);
+    }
+
+    public void SendActivitiesAsync(string opponentId)
+    {
+        Debug.Log($"SENDING ACTIVITIES TO OPPONENT: {opponentId}");
+        hubconnection.InvokeAsync("SendActivitiesAsync", opponentId);
     }
 
     public void OnGameOver()

@@ -99,16 +99,16 @@ public class SharedResources
         }
     }
 
-    internal static UserDetailDto UserDetail { get; set; }
-    internal static List<UserDetailDto> UserSearchDetails { get; set; }
-    internal static UserDetailResponseDto OpponentDetail { get; set; }
-    internal static UserGamingCountDto GamingCount { get; set; }
-    internal static List<TopicResponseDto> TopicResponse { get; set; }
+    internal static UserDetailDto UserDetail;
+    internal static List<UserDetailDto> UserSearchDetails;
+    internal static UserDetailResponseDto OpponentDetail;
+    internal static UserGamingCountDto GamingCount;
+    internal static List<TopicResponseDto> TopicResponse;
 
-    internal static ICollection<Question> Questions { get; set; }
-    internal static TopicResponseDto TopicInPlay { get; set; }
-    internal static List<UserActivityResponse> UserActivity { get; set; }
-    internal static List<UserDetailResponseDto> UserFriends { get; set; }
+    internal static ICollection<Question> Questions;
+    internal static TopicResponseDto TopicInPlay;
+    internal static List<UserActivityResponse> UserActivity;
+    internal static List<UserDetailResponseDto> UserFriends;
 
     private static Texture2D LoadTextureFromByteArray(byte[] imageBytes)
     {

@@ -136,10 +136,10 @@ public class ActivityPage : MonoBehaviour
             var name = texts.First(x => x.name == "Name");
             var activityObject = texts.First(x => x.name == "Activity");
 
-            name.text = activity.ChallengerName;
+            name.text = activity.SenderName;
 
             activityObject.text = activity.Activity == ActivityEnum.Challenge ? $" challenged you to play {activity.TopicName}"
-                : $" started following you";
+                : $" wants to be your friend";
 
             var button = item_go.GetComponentInChildren<Button>();
 

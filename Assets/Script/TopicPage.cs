@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,16 +28,9 @@ public class TopicPage : MonoBehaviour
     private NavigationSection onClickTopic;
     private bool hasDisplayedTopics;
 
-    private List<TopicResponseDto> CachedTopic { get; set; }
-
-    void Start()
-    {
-        /*onClickTopic = FindAnyObjectByType<NavigationSection>();
-        ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, true);*/
-    }
-
     private void OnEnable()
     {
+        hasDisplayedTopics = false;
         onClickTopic = FindAnyObjectByType<NavigationSection>();
         ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, true);
     }
@@ -49,18 +43,8 @@ public class TopicPage : MonoBehaviour
             ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, false);
 
             loadingCircleAnimator.gameObject.SetActive(false);
-
-            //if(CachedTopic == null || !CachedTopic.Any())
             GetTopics();
-
-            //PlayerPrefExtension<List<TopicResponseDto>>.UpdateDb(TopicResponse);
         }
-        /*if (CachedTopic != null && CachedTopic.Any())
-        {
-            ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, false);
-            loadingCircleAnimator.gameObject.SetActive(false);
-            GetTopics();
-        }*/
     }
 
     public void GetTopics()
@@ -96,7 +80,6 @@ public class TopicPage : MonoBehaviour
                 var profileImage = topic_go.GetComponentInChildren<Image>();
 
                 profileImage.sprite = topic.Sprite;
-                //_ = LoadTopicImageAsync(profileImage, topic.Image);
 
                 topic_go.GetComponentInChildren<TextMeshProUGUI>().text = topic.Name;
 
@@ -109,24 +92,13 @@ public class TopicPage : MonoBehaviour
                         button.onClick.RemoveAllListeners();
                         button.onClick.AddListener(() =>
                         {
-                            onClickTopic.OnClickTopicCard(gameObject, topic);
+                            var topicCopy = TopicResponse.FirstOrDefault(x => x.Id == topic.Id);
+                            onClickTopic.OnClickTopicCard(gameObject, topicCopy);
                         });
                     }
                     
                 }
             }
         }
-    }
-
-    public void GetCachedTopics()
-    {
-        /*if (PlayerPrefExtension<List<TopicResponseDto>>.HasKey())
-        {
-            CachedTopic = PlayerPrefExtension<List<TopicResponseDto>>.Get();
-
-            ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, false);
-            loadingCircleAnimator.gameObject.SetActive(false);
-            GetTopics();
-        }*/
     }
 }
