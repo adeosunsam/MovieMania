@@ -30,6 +30,7 @@ public class TopicPage : MonoBehaviour
 
     private void OnEnable()
     {
+        Debug.Log("ENABLING TOPIC PAGE .......................");
         hasDisplayedTopics = false;
         onClickTopic = FindAnyObjectByType<NavigationSection>();
         ProgressDialogue.Instance.SetLoadingCircleAnimation(loadingCircleAnimator, true);
@@ -49,11 +50,13 @@ public class TopicPage : MonoBehaviour
 
     public void GetTopics()
     {
-        var groupedTopics = TopicResponse.GroupBy(x => x.Category).ToList();
+        RefreshSection(sectionContentContainer.childCount, sectionContentContainer);
+
+		var groupedTopics = TopicResponse.GroupBy(x => x.Category).ToList();
 
         foreach (var groupedTopic in groupedTopics)
         {
-            var item_go = Instantiate(sectionPrefab);
+			var item_go = Instantiate(sectionPrefab);
 
             item_go.transform.SetParent(sectionContentContainer);
 
@@ -101,4 +104,13 @@ public class TopicPage : MonoBehaviour
             }
         }
     }
+	void RefreshSection(int childCount, Transform parent)
+	{
+		for (int i = 0; i < childCount; i++)
+		{
+			Transform child = parent.GetChild(i);
+
+			Destroy(child.gameObject);
+		}
+	}
 }

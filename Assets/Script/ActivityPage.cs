@@ -204,7 +204,9 @@ public class ActivityPage : MonoBehaviour
 
                     if (response.Data)
                     {
-                        googleOAuth.Reload();
+						BroadcastService.Singleton.SendActivitiesAsync(senderId);
+
+						googleOAuth.Reload();
 
                         GameManager.Instance.LoadingPanelInMainThread(isSuccessful: true, message: response.ResponseMessage, status: false);
                     }

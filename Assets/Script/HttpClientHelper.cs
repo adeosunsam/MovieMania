@@ -7,7 +7,7 @@ using UnityEngine;
 public static class HttpClientHelper
 {
     private static readonly HttpClient client;
-    private const string baseUrl = "https://samallos-001-site1.anytempurl.com";
+    private const string baseUrl = "http://sammallos-001-site1.rtempurl.com";
     //private static readonly string baseUrl = "https://localhost:7153/api";
     private static readonly string authToken;
 

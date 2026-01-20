@@ -13,7 +13,7 @@ public class BroadcastService : MonoBehaviour
     private string opponentId;
 
     private HubConnection hubconnection;
-    private string url = "https://samallos-001-site1.anytempurl.com/chatHub";
+    private string url = "http://sammallos-001-site1.rtempurl.com/chatHub";
     //private string url = "http://localhost:5060/chatHub";
 
     private string groupId;
@@ -24,10 +24,17 @@ public class BroadcastService : MonoBehaviour
 
     public bool OpponentGameOver { get; set; }
 
-    private void Awake()
+	private GoogleOAuth googleOAuth;
+
+	private void Awake()
     {
-        Singleton = this;
-    }
+		if (Singleton == null)
+		{
+			Singleton = this;
+		}
+
+		googleOAuth = FindAnyObjectByType<GoogleOAuth>();
+	}
 
     public async void ConnectUser()
     {
@@ -59,7 +66,10 @@ public class BroadcastService : MonoBehaviour
                     x.Sprite = await LoadImageAsync(x.UserImage);
                 });
             });
-        });
+
+            googleOAuth.Reload();
+			//GameManager.Instance.LoadingPanelInMainThread(isSuccessful: true, status: false);
+		});
 
         hubconnection.On("RecieveScore", (int opponentScore) =>
         {

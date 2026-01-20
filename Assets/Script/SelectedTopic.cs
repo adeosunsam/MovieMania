@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
-using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 using UnityEngine.UI;
 using static ResponseDtos;
@@ -113,12 +112,15 @@ public class SelectedTopic : MonoBehaviour
                         var incomingTopics = await ExternalService.FetchAvailableTopics(UserDetail.UserId);
                         MainThreadDispatcher.Enqueue(() =>
                         {
-                            PlayerPrefExtension<List<TopicResponseDto>>.UpdateDb(incomingTopics);
+							followButton.interactable = false;
+							PlayerPrefExtension<List<TopicResponseDto>>.UpdateDb(incomingTopics);
                         });
                         TopicResponse = incomingTopics;
                         StartUp();
                         
                         GameManager.Instance.LoadingPanelInMainThread(isSuccessful: true, message: "topic followed successfully", status: false);
+
+
                     }
                     else
                     {
